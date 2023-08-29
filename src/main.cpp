@@ -1,8 +1,10 @@
 #include <iostream>
 #include <span>
 
-#include "nn_tensor.h"
 #include "tensor.h"
+
+#include "data/dataset.h"
+#include "data/nn.h"
 
 int main() {
   tensor<float> t({2, 2});

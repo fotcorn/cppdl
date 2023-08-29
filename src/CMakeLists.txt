@@ -4,3 +4,4 @@ add_executable(cppdl
 
 target_compile_options(cppdl PRIVATE -Wall -Wextra -pedantic -march=native -g)
 target_compile_features(cppdl PUBLIC cxx_std_17)
+target_include_directories(cppdl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -22,7 +22,7 @@ int main() {
 
   std::cout << matrix[1][0].item() << std::endl;
 
-  std::cout << matrix.add(tensor<float>::constants({3.0f})) << std::endl;
+  std::cout << matrix.add(3.0f) << std::endl;
 
   /*
   // tensor operations

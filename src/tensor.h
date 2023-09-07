@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <functional>
 #include <memory>
 #include <span>
 #include <sstream>
@@ -9,7 +10,8 @@
 // todo: implement elementwise operations
 // todo: implement elementwise with broadcast
 
-template <typename T> class tensor final {
+template <typename T>
+class tensor final {
 public:
   tensor(std::vector<size_t> shape, T init = 0) : shape(shape) {
     offset = 0;
@@ -89,17 +91,31 @@ public:
     return tensor<T>(this->data, new_offset, new_size, new_shape, new_strides);
   }
 
-  tensor<T> add(const tensor<T> &op) const {
-    if (op.size != 1) {
-      throw new std::runtime_error("only single operands supported");
-    }
-    T value = op.item();
+  tensor<T> apply(std::function<T(T)> func) const {
     tensor<T> result(this->shape);
-
     for (size_t i = 0; i < result.size; i++) {
-      result.data.get()[i] = value + data.get()[offset + i];
+      result.data.get()[i] = func(data.get()[i]);
     }
     return result;
+  }
+
+  tensor<T> add(T op) const {
+    return apply([&](T val) { return val + op; });
+  }
+
+  tensor<T> sub(T op) const {
+    return apply([&](T val) { return val - op; });
+  }
+
+  tensor<T> mul(T op) const {
+    return apply([&](T val) { return val * op; });
+  }
+
+  tensor<T> div(T op) const {
+    if (op == 0) {
+      throw std::runtime_error("Division by zero is not allowed.");
+    }
+    return apply([&](T val) { return val / op; });
   }
 
   std::string to_string() const {

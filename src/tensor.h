@@ -7,7 +7,6 @@
 #include <sstream>
 #include <vector>
 
-// todo: implement elementwise operations
 // todo: implement elementwise with broadcast
 
 template <typename T>
@@ -43,19 +42,19 @@ public:
     tensor<T> t(shape, 1);
     return t;
   }
-
-  static tensor<T> constants(const std::vector<T> &data) {
+  static tensor<T> vector(std::initializer_list<T> data) {
     std::vector<size_t> shape = {data.size()};
     tensor<T> t(shape);
     std::copy(data.begin(), data.end(), t.data.get());
     return t;
   }
 
-  static tensor<T> constants(const std::vector<std::vector<T>> &data) {
-    if (data.empty()) {
+  static tensor<T>
+  matrix2d(std::initializer_list<std::initializer_list<T>> data) {
+    if (data.size() == 0) {
       throw std::runtime_error("Input data cannot be empty.");
     }
-    size_t subvector_size = data[0].size();
+    size_t subvector_size = data.begin()->size();
     for (const auto &subvector : data) {
       if (subvector.size() != subvector_size) {
         throw std::runtime_error("All subvectors must be the same size.");

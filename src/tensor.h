@@ -90,6 +90,7 @@ public:
     return tensor<T>(this->data, new_offset, new_size, new_shape, new_strides);
   }
 
+  // Elementwise ops.
   tensor<T> apply(std::function<T(T)> func) const {
     tensor<T> result(this->shape);
     for (size_t i = 0; i < result.size; i++) {
@@ -115,6 +116,43 @@ public:
       throw std::runtime_error("Division by zero is not allowed.");
     }
     return apply([&](T val) { return val / op; });
+  }
+
+  // Tensor ops.
+  tensor<T> add(tensor<T> op) const {
+    auto shape1 = shape;
+    auto shape2 = op.shape;
+
+    ssize_t diff = shape1.size() - shape2.size();
+    if (diff > 0) {
+      for (ssize_t i = 0; i < diff; i++) {
+        shape2.push_back(1);
+      }
+    } else if (diff < 0) {
+      for (ssize_t i = diff; i < 0; i++) {
+        shape1.push_back(1);
+      }
+    }
+    assert(shape1.size() == shape2.size());
+
+    for (size_t i = 0; i < shape1.size(); i++) {
+      if (!(shape1[i] == shape2[i] || shape1[i] == 1 || shape2[i] == 1)) {
+        throw std::runtime_error(
+            "incompatible shapes for arithmetic operation");
+      }
+    }
+
+    if (shape1.size() == 1) {
+      size_t dim1 = shape1[0];
+      size_t dim2 = shape2[0];
+      size_t dim = std::max(dim1, dim2);
+      tensor<T> res = tensor<T>({dim});
+      for (size_t i = 0; i < dim; i++) {
+        res.data[i] = data[i % dim1] + op.data[i % dim2];
+      }
+      return res;
+    }
+    throw std::runtime_error("unsupported shapes for arithmetic operation");
   }
 
   std::string to_string() const {
@@ -153,6 +191,8 @@ public:
     os << t.to_string();
     return os;
   }
+
+  const std::vector<size_t> &getShape() const { return shape; }
 
 private:
   tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,

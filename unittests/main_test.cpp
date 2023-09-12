@@ -18,6 +18,7 @@ TEST(Tensor, Constants2D) {
   EXPECT_EQ(4.0f, a[1][1].item());
 }
 
+// Elementwise tests.
 TEST(Tensor, Add) {
   tensor<float> a = tensor<float>::vector({1.0f, 2.0f});
   tensor<float> b = a.add(1.0f);
@@ -44,6 +45,42 @@ TEST(Tensor, Div) {
   tensor<float> b = a.div(2.0f);
   EXPECT_EQ(2.0f, b[0].item());
   EXPECT_EQ(3.0f, b[1].item());
+}
+
+// Broadcast tests
+TEST(Tensor, AddOneOne) {
+  tensor<float> a = tensor<float>::vector({1.0f});
+  tensor<float> b = tensor<float>::vector({3.5f});
+  tensor<float> res = a.add(b);
+  EXPECT_EQ(4.5f, res[0].item());
+  EXPECT_EQ(res.getShape(), std::vector<size_t>({1}));
+}
+
+TEST(Tensor, AddTwoOne) {
+  tensor<float> a = tensor<float>::vector({1.0f, 2.0f});
+  tensor<float> b = tensor<float>::vector({3.5f});
+  tensor<float> res = a.add(b);
+  EXPECT_EQ(4.5f, res[0].item());
+  EXPECT_EQ(5.5f, res[1].item());
+  EXPECT_EQ(res.getShape(), std::vector<size_t>({2}));
+}
+
+TEST(Tensor, AddOneTwo) {
+  tensor<float> a = tensor<float>::vector({3.5f});
+  tensor<float> b = tensor<float>::vector({1.0f, 2.0f});
+  tensor<float> res = a.add(b);
+  EXPECT_EQ(4.5f, res[0].item());
+  EXPECT_EQ(5.5f, res[1].item());
+  EXPECT_EQ(res.getShape(), std::vector<size_t>({2}));
+}
+
+TEST(Tensor, AddTwoTwo) {
+  tensor<float> a = tensor<float>::vector({1.0f, 2.0f});
+  tensor<float> b = tensor<float>::vector({3.5f, 4.5f});
+  tensor<float> res = a.add(b);
+  EXPECT_EQ(4.5f, res[0].item());
+  EXPECT_EQ(6.5f, res[1].item());
+  EXPECT_EQ(res.getShape(), std::vector<size_t>({2}));
 }
 
 int main(int argc, char **argv) {

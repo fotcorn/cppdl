@@ -145,6 +145,16 @@ TEST(Tensor, Matrix2DAdd22_22) {
   EXPECT_EQ(res.getShape(), std::vector<size_t>({2, 2}));
 }
 
+TEST(Tensor, ReLU) {
+  tensor<float> a = tensor<float>::matrix2d({{-1.0f, 0.0f}, {3.0f, -4.0f}});
+  tensor<float> res = a.relu();
+  EXPECT_EQ(0.0f, res[0][0].item());
+  EXPECT_EQ(0.0f, res[0][1].item());
+  EXPECT_EQ(3.0f, res[1][0].item());
+  EXPECT_EQ(0.0f, res[1][1].item());
+  EXPECT_EQ(res.getShape(), std::vector<size_t>({2, 2}));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

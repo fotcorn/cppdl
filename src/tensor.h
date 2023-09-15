@@ -94,28 +94,33 @@ public:
   tensor<T> apply(std::function<T(T)> func) const {
     tensor<T> result(this->shape);
     for (size_t i = 0; i < result.size; i++) {
+      // TODO: take offset and stride into account.
       result.data.get()[i] = func(data.get()[i]);
     }
     return result;
   }
 
   tensor<T> add(T op) const {
-    return apply([](T val) { return val + op; });
+    return apply([op](T val) { return val + op; });
   }
 
   tensor<T> sub(T op) const {
-    return apply([](T val) { return val - op; });
+    return apply([op](T val) { return val - op; });
   }
 
   tensor<T> mul(T op) const {
-    return apply([](T val) { return val * op; });
+    return apply([op](T val) { return val * op; });
   }
 
   tensor<T> div(T op) const {
     if (op == 0) {
       throw std::runtime_error("Division by zero is not allowed.");
     }
-    return apply([](T val) { return val / op; });
+    return apply([op](T val) { return val / op; });
+  }
+
+  tensor<T> relu() const {
+    return apply([](T val) { return std::max<T>(0, val); });
   }
 
   // Tensor ops.

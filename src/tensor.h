@@ -100,26 +100,26 @@ public:
   }
 
   tensor<T> add(T op) const {
-    return apply([&](T val) { return val + op; });
+    return apply([](T val) { return val + op; });
   }
 
   tensor<T> sub(T op) const {
-    return apply([&](T val) { return val - op; });
+    return apply([](T val) { return val - op; });
   }
 
   tensor<T> mul(T op) const {
-    return apply([&](T val) { return val * op; });
+    return apply([](T val) { return val * op; });
   }
 
   tensor<T> div(T op) const {
     if (op == 0) {
       throw std::runtime_error("Division by zero is not allowed.");
     }
-    return apply([&](T val) { return val / op; });
+    return apply([](T val) { return val / op; });
   }
 
   // Tensor ops.
-  tensor<T> add(tensor<T> op) const {
+  tensor<T> apply(const tensor<T> &op, std::function<T(T, T)> func) const {
     auto &op1 = *this;
     auto &op2 = op;
 
@@ -178,13 +178,35 @@ public:
                      (dim1 % shapeOp1[1]) * strideOp1[1];
           T index2 = op2.offset + (dim0 % shapeOp2[0]) * strideOp2[0] +
                      (dim1 % shapeOp2[1]) * strideOp2[1];
-          res.data[dim0 * dim0Max + dim1] = op1.data[index1] + op2.data[index2];
+          res.data[dim0 * dim0Max + dim1] =
+              func(op1.data[index1], op2.data[index2]);
         }
       }
       return res;
     }
 
     throw std::runtime_error("unsupported shapes for arithmetic operation");
+  }
+
+  tensor<T> add(const tensor<T> &op) const {
+    return apply(op, [](T v1, T v2) { return v1 + v2; });
+  }
+
+  tensor<T> sub(const tensor<T> &op) const {
+    return apply(op, [](T v1, T v2) { return v1 - v2; });
+  }
+
+  tensor<T> mul(const tensor<T> &op) const {
+    return apply(op, [](T v1, T v2) { return v1 * v2; });
+  }
+
+  tensor<T> div(const tensor<T> &op) const {
+    return apply(op, [](T v1, T v2) {
+      if (v2 == 0) {
+        throw std::runtime_error("Division by zero is not allowed.");
+      }
+      return v1 / v2;
+    });
   }
 
   std::string to_string() const {

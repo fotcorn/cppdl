@@ -1,5 +1,8 @@
 add_executable(cppdl_test
-    ${CMAKE_CURRENT_SOURCE_DIR}/main_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tensor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tensor_elementwise.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tensor_broadcast.cpp
 )
 
 target_include_directories(cppdl_test PRIVATE ../src)

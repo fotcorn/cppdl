@@ -70,7 +70,7 @@ public:
     return t;
   }
 
-  tensor<T> operator[](const size_t index) {
+  tensor<T> operator[](const size_t index) const {
     if (index >= shape[0]) {
       throw std::runtime_error("index out of range");
     }
@@ -203,6 +203,39 @@ public:
 
   tensor<T> mul(const tensor<T> &op) const {
     return apply(op, [](T v1, T v2) { return v1 * v2; });
+  }
+
+  tensor<T> matmul(const tensor<T> &op) const {
+    auto &op1 = *this;
+    auto &op2 = op;
+
+    if (op1.shape.size() != op2.shape.size()) {
+      throw std::runtime_error("matmul requires same number of dimensions");
+    }
+    if (op1.shape.size() == 2) {
+      if (op1.shape[1] != op2.shape[0]) {
+        throw std::runtime_error(
+            "matmul: second dimension of first matrix does "
+            "not match first dimension of second matrix");
+      }
+
+      size_t dim0Max = op1.shape[0];
+      size_t dim1Max = op2.shape[1];
+      tensor<T> res = tensor<T>({dim0Max, dim1Max});
+      for (size_t dim0 = 0; dim0 < dim0Max; dim0++) {
+        for (size_t dim1 = 0; dim1 < dim1Max; dim1++) {
+          float sum = 0.0f;
+          for (size_t i = 0; i < dim0Max; i++) {
+            sum += op1[dim0][i].item() * op2[i][dim1].item();
+          }
+          res.data[dim0 * res.strides[0] + dim1] = sum;
+        }
+      }
+
+      return res;
+    } else {
+      throw std::runtime_error("matmul only supports 2-dimensional matrices");
+    }
   }
 
   tensor<T> div(const tensor<T> &op) const {

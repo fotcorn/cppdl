@@ -3,6 +3,7 @@ add_executable(cppdl_test
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_elementwise.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_broadcast.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tensor_matmul.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_slice.cpp
 )
 

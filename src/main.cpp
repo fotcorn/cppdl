@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <span>
 
@@ -16,14 +17,22 @@ Tensor net(Tensor input, Tensor w1, Tensor b1, Tensor w2, Tensor b2, Tensor w3,
 }
 
 int main() {
-  tensor<float> input = tensor<float>::matrix2d(
-      {{DATASET_VALUES[0][0].item()}, {DATASET_VALUES[0][1].item()}});
-  auto result = net<tensor<float>>(input, LAYER_0_WEIGHTS, LAYER_0_BIASES,
-                                   LAYER_1_WEIGHTS, LAYER_1_BIASES,
-                                   LAYER_2_WEIGHTS, LAYER_2_BIASES);
+  int correct = 0;
+  for (size_t i = 0; i < DATASET_VALUES.getShape()[0]; i++) {
+    tensor<float> input = tensor<float>::matrix2d(
+        {{DATASET_VALUES[i][0].item()}, {DATASET_VALUES[i][1].item()}});
+    auto result = net<tensor<float>>(input, LAYER_0_WEIGHTS, LAYER_0_BIASES,
+                                     LAYER_1_WEIGHTS, LAYER_1_BIASES,
+                                     LAYER_2_WEIGHTS, LAYER_2_BIASES);
 
-  std::cout << result[0].item() << std::endl;
-  std::cout << DATASET_LABELS[0].item() << std::endl;
+    if (std::signbit(result[0].item()) ==
+        std::signbit(DATASET_LABELS[i].item())) {
+      correct++;
+    }
+  }
+
+  float accuracy = static_cast<float>(correct) / DATASET_VALUES.getShape()[0];
+  std::cout << "Accuracy: " << accuracy << std::endl;
 
   return 0;
 }

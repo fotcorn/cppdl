@@ -100,19 +100,19 @@ public:
     return result;
   }
 
-  tensor<T> add(T op) const {
+  tensor<T> operator+(T op) const {
     return apply([op](T val) { return val + op; });
   }
 
-  tensor<T> sub(T op) const {
+  tensor<T> operator-(T op) const {
     return apply([op](T val) { return val - op; });
   }
 
-  tensor<T> mul(T op) const {
+  tensor<T> operator*(T op) const {
     return apply([op](T val) { return val * op; });
   }
 
-  tensor<T> div(T op) const {
+  tensor<T> operator/(T op) const {
     if (op == 0) {
       throw std::runtime_error("Division by zero is not allowed.");
     }
@@ -193,16 +193,25 @@ public:
     throw std::runtime_error("unsupported shapes for arithmetic operation");
   }
 
-  tensor<T> add(const tensor<T> &op) const {
+  tensor<T> operator+(const tensor<T> &op) const {
     return apply(op, [](T v1, T v2) { return v1 + v2; });
   }
 
-  tensor<T> sub(const tensor<T> &op) const {
+  tensor<T> operator-(const tensor<T> &op) const {
     return apply(op, [](T v1, T v2) { return v1 - v2; });
   }
 
-  tensor<T> mul(const tensor<T> &op) const {
+  tensor<T> operator*(const tensor<T> &op) const {
     return apply(op, [](T v1, T v2) { return v1 * v2; });
+  }
+
+  tensor<T> operator/(const tensor<T> &op) const {
+    return apply(op, [](T v1, T v2) {
+      if (v2 == 0) {
+        throw std::runtime_error("Division by zero is not allowed.");
+      }
+      return v1 / v2;
+    });
   }
 
   tensor<T> matmul(const tensor<T> &op) const {
@@ -236,15 +245,6 @@ public:
     } else {
       throw std::runtime_error("matmul only supports 2-dimensional matrices");
     }
-  }
-
-  tensor<T> div(const tensor<T> &op) const {
-    return apply(op, [](T v1, T v2) {
-      if (v2 == 0) {
-        throw std::runtime_error("Division by zero is not allowed.");
-      }
-      return v1 / v2;
-    });
   }
 
   std::string to_string() const {

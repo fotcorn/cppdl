@@ -228,13 +228,14 @@ public:
             "not match first dimension of second matrix");
       }
 
-      size_t dim0Max = op1.shape[0];
-      size_t dim1Max = op2.shape[1];
+      const size_t dim0Max = op1.shape[0];
+      const size_t dim1Max = op2.shape[1];
+      const size_t maxI = op1.shape[1];
       tensor<T> res = tensor<T>({dim0Max, dim1Max});
       for (size_t dim0 = 0; dim0 < dim0Max; dim0++) {
         for (size_t dim1 = 0; dim1 < dim1Max; dim1++) {
           float sum = 0.0f;
-          for (size_t i = 0; i < dim0Max; i++) {
+          for (size_t i = 0; i < maxI; i++) {
             sum += op1[dim0][i].item() * op2[i][dim1].item();
           }
           res.data[dim0 * res.strides[0] + dim1] = sum;

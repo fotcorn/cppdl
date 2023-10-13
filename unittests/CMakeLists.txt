@@ -5,6 +5,7 @@ add_executable(cppdl_test
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_broadcast.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_matmul.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_slice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tensor_stack.cpp
 )
 
 target_include_directories(cppdl_test PRIVATE ../src)

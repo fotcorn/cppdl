@@ -280,6 +280,31 @@ public:
     return ss.str();
   }
 
+  static tensor<T> stack(std::initializer_list<tensor<T>> tensors) {
+    if (tensors.size() == 0) {
+      throw std::runtime_error("Cannot stack empty list of tensors.");
+    }
+    auto inputShape = tensors.begin()->shape;
+    auto outputShape = std::vector<size_t>({tensors.size()});
+    outputShape.insert(outputShape.end(), inputShape.begin(), inputShape.end());
+
+    auto result = tensor<T>(outputShape);
+    size_t offset = 0;
+    for (const tensor<T> &t : tensors) {
+      // todo: take offset and strides into account
+      assert(t.offset == 0);
+      assert(t.strides.back() == 1);
+
+      if (t.shape != inputShape) {
+        throw std::runtime_error("stack: mismatched shapes");
+      }
+      std::copy(t.data.get(), t.data.get() + t.size,
+                result.data.get() + offset);
+      offset += t.size;
+    }
+    return result;
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const tensor<T> &t) {
     os << t.to_string();
     return os;

@@ -90,6 +90,8 @@ public:
 
   // Elementwise ops.
   tensor<T> apply(std::function<T(T)> func) const {
+    assert(offset == 0);
+    assert(strides.back() == 1);
     tensor<T> result(this->shape);
     for (size_t i = 0; i < result.size; i++) {
       // TODO: take offset and stride into account.

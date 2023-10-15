@@ -322,6 +322,109 @@ public:
     return result;
   }
 
+  tensor<T> transpose() {
+    if (shape.size() == 1) {
+      return *this;
+    }
+    std::vector<size_t> newShape;
+    std::reverse_copy(shape.begin(), shape.end(), std::back_inserter(newShape));
+    auto result = tensor<T>(newShape);
+
+    if (shape.size() == 2) {
+      size_t newIndex = 0;
+      for (size_t dim1 = 0; dim1 < shape[1]; dim1++) {
+        for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
+          result.data.get()[newIndex] =
+              data.get()[offset + dim0 * strides[0] + dim1 * strides[1]];
+          newIndex++;
+        }
+      }
+      return result;
+    }
+    if (shape.size() == 3) {
+      size_t newIndex = 0;
+      for (size_t dim2 = 0; dim2 < shape[2]; dim2++) {
+        for (size_t dim1 = 0; dim1 < shape[1]; dim1++) {
+          for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
+            result.data.get()[newIndex] =
+                data.get()[offset + dim0 * strides[0] + dim1 * strides[1] +
+                           dim2 * strides[2]];
+            newIndex++;
+          }
+        }
+      }
+      return result;
+    }
+    throw std::runtime_error("unsupported shape for transpose()");
+  }
+
+  /*
+  2,3
+
+  {
+    {1,2,3}
+    {4,5,6}
+  }
+  indexes: 0,1,2,3,4,5
+  result:
+  {
+    {1,4}
+    {2,5}
+    {3,6}
+  }
+  indexes: 0,3,1,4,2,5
+
+  strides: 3,1
+
+  dim, index
+  0,0 : 0*3 + 0*1 = 0
+  0,1 : 0*3 + 1*1 = 1
+  0,2 : 0*3 + 2*1 = 2
+  1,0 : 1*3 + 0*1 = 3
+  1,1 : 1*3 + 1*1 = 4
+  1,2 : 1*3 + 2*1 = 5
+
+  0,0 : 0*3 + 0*1 = 0
+  1,0 : 1*3 + 0*1 = 3
+  0,1 : 0*3 + 1*1 = 1
+  1,1 : 1*3 + 1*1 = 4
+  0,2 : 0*3 + 2*1 = 2
+  1,2 : 1*3 + 2*1 = 5
+
+size_t newIndex = 0;
+for (size_t dim1 = 0; dim1 < shape[1]; dim1++) {
+  for (size_t dim10 = 0; dim0 < shape[0]; dim0++) {
+    result.data.get()[newIndex] = data.get()[offset + dim0 * strides[0]  + dim1
+* strides[1]];
+newIndex++;
+  }
+}
+
+
+  inverted strides (broken):
+  0,0 : 0*1 + 0*3 = 0
+  0,1 : 0*1 + 1*3 = 3
+  0,2 : 0*1 + 2*3 = 6
+  1,0 : 1*1 + 0*3 = 1
+  1,1 : 1*1 + 1*3 = 4
+  1,2 : 1*1 + 2*3 = 7
+
+  0,0 : 0*1 + 0*3 = 0
+  0,1 : 0*1 + 1*3 = 3
+  0,2 : 0*1 + 2*3 = 1
+  1,0 : 1*1 + 0*3 = 2
+  1,1 : 1*1 + 1*3 = 4
+  1,2 : 1*1 + 2*3 = 6
+
+  0,0 : 0*1 + 0*3 = 0
+  0,1 : 0*1 + 1*3 = 3
+  0,2 : 0*1 + 2*3 = 1
+  1,0 : 1*1 + 0*3 = 4
+  1,1 : 1*1 + 1*3 = 2
+  1,2 : 1*1 + 2*3 = 5
+
+  */
+
   friend std::ostream &operator<<(std::ostream &os, const tensor<T> &t) {
     os << t.to_string();
     return os;

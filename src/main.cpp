@@ -17,7 +17,6 @@ Tensor net(Tensor input, Tensor w1, Tensor b1, Tensor w2, Tensor b2, Tensor w3,
 }
 
 int main() {
-
   auto result = net<tensor<float>>(
       DATASET_VALUES, LAYER_0_WEIGHTS, LAYER_0_BIASES, LAYER_1_WEIGHTS,
       LAYER_1_BIASES, LAYER_2_WEIGHTS, LAYER_2_BIASES);

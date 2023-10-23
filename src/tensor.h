@@ -358,6 +358,26 @@ public:
     throw std::runtime_error("unsupported shape for transpose()");
   }
 
+  T meanSquareError(tensor<T> labels) {
+    if (labels.shape != shape) {
+      throw std::runtime_error(
+          "meanSquareError: shapes of operands do not match");
+    }
+
+    T total = 0;
+    if (shape.size() == 1) {
+      for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
+        T observed = data[offset + dim0 * strides[0]];
+        T label = labels.data[offset + dim0 * strides[0]];
+        T val = observed - label;
+        total += val * val;
+      }
+      return total / shape[0];
+    }
+
+    throw std::runtime_error("meanSquareError: unsupported shape size");
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const tensor<T> &t) {
     os << t.to_string();
     return os;

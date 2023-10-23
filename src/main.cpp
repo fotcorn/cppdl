@@ -29,7 +29,14 @@ int main() {
     }
   }
 
+  printVector(result.getShape());
+  printVector(DATASET_LABELS.getShape());
+
   float accuracy = static_cast<float>(correct) / DATASET_VALUES.getShape()[0];
   std::cout << "Accuracy: " << accuracy << std::endl;
+
+  float mse = result.meanSquareError(DATASET_LABELS);
+  std::cout << "MSE: " << mse << std::endl;
+
   return 0;
 }

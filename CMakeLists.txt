@@ -8,5 +8,6 @@ project(cppdl
 )
 
 add_subdirectory(src)
-add_subdirectory(googletest)
 add_subdirectory(unittests)
+add_subdirectory(vendor/googletest)
+add_subdirectory(vendor/fmt)

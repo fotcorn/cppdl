@@ -3,9 +3,24 @@
 #include <cassert>
 #include <functional>
 #include <memory>
+#include <numeric>
 #include <span>
 #include <sstream>
 #include <vector>
+
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+namespace {
+void calculateStridesFromShape(const std::vector<size_t> &shape,
+                               std::vector<size_t> &strides) {
+  strides.resize(shape.size());
+  strides.back() = 1;
+  for (int i = shape.size() - 2; i >= 0; --i) {
+    strides[i] = strides[i + 1] * shape[i + 1];
+  }
+}
+} // namespace
 
 template <typename T>
 class tensor final {
@@ -21,11 +36,7 @@ public:
     data = std::shared_ptr<T[]>(new T[size]);
     std::fill_n(data.get(), size, init);
 
-    strides.resize(shape.size());
-    strides.back() = 1;
-    for (int i = shape.size() - 2; i >= 0; --i) {
-      strides[i] = strides[i + 1] * shape[i + 1];
-    }
+    calculateStridesFromShape(shape, strides);
   };
 
   T item() const {
@@ -320,6 +331,25 @@ public:
       offset += t.size;
     }
     return result;
+  }
+
+  tensor<T> reshape(std::initializer_list<size_t> newShape) {
+    size_t oldShapeProduct =
+        std::accumulate(shape.begin(), shape.end(), 1, std::multiplies());
+    size_t newShapeProduct =
+        std::accumulate(newShape.begin(), newShape.end(), 1, std::multiplies());
+
+    if (oldShapeProduct != newShapeProduct) {
+      throw std::runtime_error(fmt::format(
+          "reshape: old and new shape do not match: {}, {}", shape, newShape));
+    }
+
+    assert(strides.back() == 1);
+
+    std::vector<size_t> newStrides;
+    calculateStridesFromShape(newShape, newStrides);
+
+    return tensor<T>(data, offset, size, newShape, newStrides);
   }
 
   tensor<T> transpose() {

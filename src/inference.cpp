@@ -31,14 +31,13 @@ int main() {
     }
   }
 
-  fmt::println("result shape: {}, dataset shape: {}", result.getShape(),
-               DATASET_LABELS.getShape());
+  auto flatResult = result.reshape({100});
 
   float accuracy = static_cast<float>(correct) / DATASET_VALUES.getShape()[0];
-  std::cout << "Accuracy: " << accuracy << std::endl;
+  fmt::println("Accuracy: {}", accuracy);
 
-  float mse = result.meanSquareError(DATASET_LABELS);
-  std::cout << "MSE: " << mse << std::endl;
+  float mse = flatResult.meanSquareError(DATASET_LABELS);
+  fmt::println("MSE: {}", mse);
 
   return 0;
 }

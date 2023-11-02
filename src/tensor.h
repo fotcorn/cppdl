@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 #include <numeric>
+#include <random>
 #include <span>
 #include <sstream>
 #include <vector>
@@ -19,6 +20,14 @@ void calculateStridesFromShape(const std::vector<size_t> &shape,
   for (int i = shape.size() - 2; i >= 0; --i) {
     strides[i] = strides[i + 1] * shape[i + 1];
   }
+}
+
+template <typename T>
+T generateUniformRandom() {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  static std::uniform_real_distribution<T> dis(-1.0, 1.0);
+  return dis(gen);
 }
 } // namespace
 
@@ -47,10 +56,19 @@ public:
     return data[offset];
   }
 
-  static tensor<T> ones(const std::vector<size_t> &shape) {
+  static tensor<T> ones(std::vector<size_t> shape) {
     tensor<T> t(shape, 1);
     return t;
   }
+
+  static tensor<T> random(std::vector<size_t> shape) {
+    tensor<T> t(shape);
+    for (size_t i = 0; i < t.size; i++) {
+      t.data.get()[i] = generateUniformRandom<T>();
+    }
+    return t;
+  }
+
   static tensor<T> vector(std::initializer_list<T> data) {
     std::vector<size_t> shape = {data.size()};
     tensor<T> t(shape);

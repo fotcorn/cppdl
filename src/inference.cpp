@@ -2,8 +2,10 @@
 #include <iostream>
 #include <span>
 
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
 #include "tensor.h"
-#include "utils.h"
 
 #include "data/dataset.h"
 #include "data/nn.h"
@@ -29,8 +31,8 @@ int main() {
     }
   }
 
-  printVector(result.getShape());
-  printVector(DATASET_LABELS.getShape());
+  fmt::println("result shape: {}, dataset shape: {}", result.getShape(),
+               DATASET_LABELS.getShape());
 
   float accuracy = static_cast<float>(correct) / DATASET_VALUES.getShape()[0];
   std::cout << "Accuracy: " << accuracy << std::endl;

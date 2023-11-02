@@ -1,7 +1,9 @@
-add_executable(cppdl
-	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+add_executable(inference
+	${CMAKE_CURRENT_SOURCE_DIR}/inference.cpp
 )
 
-target_compile_options(cppdl PRIVATE -Wall -Wextra -pedantic -march=native -g)
-target_compile_features(cppdl PUBLIC cxx_std_17)
-target_include_directories(cppdl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+foreach(TARGET inference)
+	target_compile_options(${TARGET} PRIVATE -Wall -Wextra -pedantic -march=native -g)
+	target_compile_features(${TARGET} PUBLIC cxx_std_17)
+	target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+endforeach()

@@ -32,8 +32,7 @@ T generateUniformRandom() {
 } // namespace
 
 template <typename T>
-class tensor final {
-public:
+struct tensor final {
   tensor(std::vector<size_t> shape, T init = 0) : shape(shape) {
     offset = 0;
     size = 1;
@@ -433,7 +432,6 @@ public:
 
   const std::vector<size_t> &getShape() const { return shape; }
 
-private:
   tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,
          std::vector<size_t> shape, std::vector<size_t> strides)
       : data(data), offset(offset), size(size), shape(shape), strides(strides) {

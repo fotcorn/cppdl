@@ -437,9 +437,11 @@ struct tensor final {
       : data(data), offset(offset), size(size), shape(shape), strides(strides) {
   }
 
+  tensor() {}
+
   std::shared_ptr<T[]> data;
-  size_t offset;
-  size_t size;
+  size_t offset = 0;
+  size_t size = 0;
   std::vector<size_t> shape;
   std::vector<size_t> strides;
 };

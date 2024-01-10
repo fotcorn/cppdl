@@ -369,7 +369,7 @@ struct tensor final {
     return tensor<T>(data, offset, size, newShape, newStrides);
   }
 
-  tensor<T> transpose() {
+  tensor<T> transpose() const {
     if (shape.size() == 1) {
       return *this;
     }

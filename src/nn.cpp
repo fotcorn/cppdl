@@ -1,3 +1,5 @@
+#include "data/nn.h"
+#include "data/dataset.h"
 #include "tensor.h"
 
 class LinearLayer {
@@ -58,4 +60,34 @@ private:
   tensor<float> activations;
 };
 
-int main() { return 0; }
+int main() {
+  LinearLayer layer0(LAYER_0_WEIGHTS.transpose(), LAYER_0_BIASES);
+  ReLU layer0Activation;
+  LinearLayer layer1(LAYER_1_WEIGHTS.transpose(), LAYER_1_BIASES);
+  ReLU layer1Activation;
+  LinearLayer layer2(LAYER_2_WEIGHTS, LAYER_2_BIASES);
+
+  auto r1 = layer0.forward(DATASET_VALUES);
+  auto r2 = layer0Activation.forward(r1);
+  auto r3 = layer1.forward(r2);
+  auto r4 = layer1Activation.forward(r3);
+  auto result = layer2.forward(r4);
+
+  int correct = 0;
+  for (size_t i = 0; i < DATASET_VALUES.getShape()[0]; i++) {
+    if (std::signbit(result[i].item()) ==
+        std::signbit(DATASET_LABELS[i].item())) {
+      correct++;
+    }
+  }
+
+  auto flatResult = result.reshape({100});
+
+  float accuracy = static_cast<float>(correct) / DATASET_VALUES.getShape()[0];
+  fmt::println("Accuracy: {}", accuracy);
+
+  float mse = flatResult.meanSquareError(DATASET_LABELS);
+  fmt::println("MSE: {}", mse);
+
+  return 0;
+}

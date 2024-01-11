@@ -11,7 +11,11 @@ add_executable(cppdl_test
 )
 
 target_include_directories(cppdl_test PRIVATE ../src)
-target_compile_options(cppdl_test PRIVATE -Wall -Wextra -pedantic -march=native -g)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+target_compile_options(cppdl_test PRIVATE -Wall -Wextra -Wpedantic -march=native)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+target_compile_options(cppdl_test PRIVATE /W4)
+endif()
 target_compile_features(cppdl_test PUBLIC cxx_std_17)
 target_link_libraries(cppdl_test gtest gtest_main fmt::fmt)
 

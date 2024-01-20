@@ -437,6 +437,18 @@ struct tensor final {
       : data(data), offset(offset), size(size), shape(shape), strides(strides) {
   }
 
+  bool operator==(const tensor<T> &other) const {
+    if (this->shape != other.shape) {
+      return false;
+    }
+    for (size_t i = 0; i < this->size; i++) {
+      if (this->data.get()[i] != other.data.get()[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   tensor() {}
 
   std::shared_ptr<T[]> data;

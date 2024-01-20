@@ -188,8 +188,8 @@ struct tensor final {
       size_t maxDim = std::max(dimOp1, dimOp2);
       tensor<T> res = tensor<T>({maxDim});
       for (size_t i = 0; i < maxDim; i++) {
-        res.data[i] = op1.data[op1.offset + stridesOp1[0] * (i % dimOp1)] +
-                      op2.data[op2.offset + stridesOp2[0] * (i % dimOp2)];
+        res.data[i] = func(op1.data[op1.offset + stridesOp1[0] * (i % dimOp1)],
+                           op2.data[op2.offset + stridesOp2[0] * (i % dimOp2)]);
       }
       return res;
     }

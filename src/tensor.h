@@ -457,3 +457,18 @@ struct tensor final {
   std::vector<size_t> shape;
   std::vector<size_t> strides;
 };
+
+namespace fmt {
+template <typename T>
+struct formatter<tensor<T>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const tensor<T> &t, FormatContext &ctx) {
+    return format_to(ctx.out(), "{}", t.to_string());
+  }
+};
+} // namespace fmt

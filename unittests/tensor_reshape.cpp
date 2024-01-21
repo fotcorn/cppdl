@@ -3,13 +3,13 @@
 #include "tensor.h"
 
 TEST(TensorReshape, ShapesDoNotMatch) {
-  tensor<float> t({2, 3});
+  Tensor<float> t({2, 3});
   EXPECT_THROW(t.reshape({2, 2}), std::runtime_error);
 }
 
 TEST(TensorReshape, NewShapesApplied) {
-  tensor<float> t =
-      tensor<float>::matrix2d({{1.0f, 2.0f, 3.0f}, {4.0f, 5.0f, 6.0f}});
+  Tensor<float> t =
+      Tensor<float>::matrix2d({{1.0f, 2.0f, 3.0f}, {4.0f, 5.0f, 6.0f}});
   auto reshaped = t.reshape({3, 2});
   EXPECT_EQ(reshaped.getShape(), std::vector<size_t>({3, 2}));
   EXPECT_EQ(reshaped[0][0].item(), 1.0f);
@@ -21,7 +21,7 @@ TEST(TensorReshape, NewShapesApplied) {
 }
 
 TEST(TensorReshape, OneDtoTwoD) {
-  tensor<float> t = tensor<float>::vector({1.0f, 2.0f, 3.0f, 4.0f});
+  Tensor<float> t = Tensor<float>::vector({1.0f, 2.0f, 3.0f, 4.0f});
   auto reshaped = t.reshape({2, 2});
   EXPECT_EQ(reshaped.getShape(), std::vector<size_t>({2, 2}));
   EXPECT_EQ(reshaped[0][0].item(), 1.0f);
@@ -31,7 +31,7 @@ TEST(TensorReshape, OneDtoTwoD) {
 }
 
 TEST(TensorReshape, TwoDtoOneD) {
-  tensor<float> t = tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
+  Tensor<float> t = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
   auto reshaped = t.reshape({4});
   EXPECT_EQ(reshaped.getShape(), std::vector<size_t>({4}));
   EXPECT_EQ(reshaped[0].item(), 1.0f);

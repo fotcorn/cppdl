@@ -32,8 +32,8 @@ T generateUniformRandom() {
 } // namespace
 
 template <typename T>
-struct tensor final {
-  tensor(const std::vector<size_t> &shape, T init = 0) : shape(shape) {
+struct Tensor final {
+  Tensor(const std::vector<size_t> &shape, T init = 0) : shape(shape) {
     offset = 0;
     size = 1;
     for (int dim : shape) {
@@ -55,72 +55,72 @@ struct tensor final {
     return data[offset];
   }
 
-  static tensor<T> ones(std::vector<size_t> shape) {
-    tensor<T> t(shape, 1);
+  static Tensor<T> ones(std::vector<size_t> shape) {
+    Tensor<T> t(shape, 1);
     return t;
   }
 
-  static tensor<T> random(std::vector<size_t> shape) {
-    tensor<T> t(shape);
+  static Tensor<T> random(std::vector<size_t> shape) {
+    Tensor<T> t(shape);
     for (size_t i = 0; i < t.size; i++) {
       t.data.get()[i] = generateUniformRandom<T>();
     }
     return t;
   }
 
-  static tensor<T> vector(std::initializer_list<T> data) {
+  static Tensor<T> vector(std::initializer_list<T> data) {
     std::vector<size_t> shape = {data.size()};
-    tensor<T> t(shape);
+    Tensor<T> t(shape);
     std::copy(data.begin(), data.end(), t.data.get());
     return t;
   }
 
-  static tensor<T>
+  static Tensor<T>
   matrix2d(std::initializer_list<std::initializer_list<T>> data) {
     if (data.size() == 0) {
       throw std::runtime_error("Input data cannot be empty.");
     }
-    size_t subvector_size = data.begin()->size();
+    size_t subvectorSize = data.begin()->size();
     for (const auto &subvector : data) {
-      if (subvector.size() != subvector_size) {
+      if (subvector.size() != subvectorSize) {
         throw std::runtime_error("All subvectors must be the same size.");
       }
     }
-    std::vector<size_t> shape = {data.size(), subvector_size};
-    tensor<T> t(shape);
+    std::vector<size_t> shape = {data.size(), subvectorSize};
+    Tensor<T> t(shape);
     T *ptr = t.data.get();
     for (const auto &subvector : data) {
       std::copy(subvector.begin(), subvector.end(), ptr);
-      ptr += subvector_size;
+      ptr += subvectorSize;
     }
     return t;
   }
 
-  tensor<T> operator[](const size_t index) const {
+  Tensor<T> operator[](const size_t index) const {
     if (index >= shape[0]) {
       throw std::runtime_error("index out of range");
     }
-    size_t new_offset = this->offset + this->strides[0] * index;
+    size_t newOffset = this->offset + this->strides[0] * index;
     if (shape.size() == 1) {
-      std::vector<size_t> new_shape({1});
-      std::vector<size_t> new_strides({1});
-      return tensor<T>(this->data, new_offset, 1, new_shape, new_strides);
+      std::vector<size_t> newShape({1});
+      std::vector<size_t> newStrides({1});
+      return Tensor<T>(this->data, newOffset, 1, newShape, newStrides);
     }
-    std::vector<size_t> new_shape(this->shape.begin() + 1, this->shape.end());
-    std::vector<size_t> new_strides(this->strides.begin() + 1,
-                                    this->strides.end());
-    size_t new_size = 1;
-    for (int dim : new_shape) {
-      new_size *= dim;
+    std::vector<size_t> newShape(this->shape.begin() + 1, this->shape.end());
+    std::vector<size_t> newStrides(this->strides.begin() + 1,
+                                   this->strides.end());
+    size_t newSize = 1;
+    for (int dim : newShape) {
+      newSize *= dim;
     }
-    return tensor<T>(this->data, new_offset, new_size, new_shape, new_strides);
+    return Tensor<T>(this->data, newOffset, newSize, newShape, newStrides);
   }
 
   // Elementwise ops.
-  tensor<T> apply(std::function<T(T)> func) const {
+  Tensor<T> apply(std::function<T(T)> func) const {
     assert(offset == 0);
     assert(strides.back() == 1);
-    tensor<T> result(this->shape);
+    Tensor<T> result(this->shape);
     for (size_t i = 0; i < result.size; i++) {
       // TODO: take offset and stride into account.
       result.data.get()[i] = func(data.get()[i]);
@@ -128,31 +128,31 @@ struct tensor final {
     return result;
   }
 
-  tensor<T> operator+(T op) const {
+  Tensor<T> operator+(T op) const {
     return apply([op](T val) { return val + op; });
   }
 
-  tensor<T> operator-(T op) const {
+  Tensor<T> operator-(T op) const {
     return apply([op](T val) { return val - op; });
   }
 
-  tensor<T> operator*(T op) const {
+  Tensor<T> operator*(T op) const {
     return apply([op](T val) { return val * op; });
   }
 
-  tensor<T> operator/(T op) const {
+  Tensor<T> operator/(T op) const {
     if (op == 0) {
       throw std::runtime_error("Division by zero is not allowed.");
     }
     return apply([op](T val) { return val / op; });
   }
 
-  tensor<T> relu() const {
+  Tensor<T> relu() const {
     return apply([](T val) { return std::max<T>(0, val); });
   }
 
   // Tensor ops.
-  tensor<T> apply(const tensor<T> &op, std::function<T(T, T)> func) const {
+  Tensor<T> apply(const Tensor<T> &op, std::function<T(T, T)> func) const {
     auto &op1 = *this;
     auto &op2 = op;
 
@@ -185,7 +185,7 @@ struct tensor final {
       size_t dimOp1 = shapeOp1[0];
       size_t dimOp2 = shapeOp2[0];
       size_t maxDim = std::max(dimOp1, dimOp2);
-      tensor<T> res = tensor<T>({maxDim});
+      Tensor<T> res = Tensor<T>({maxDim});
       for (size_t i = 0; i < maxDim; i++) {
         res.data[i] = func(op1.data[op1.offset + stridesOp1[0] * (i % dimOp1)],
                            op2.data[op2.offset + stridesOp2[0] * (i % dimOp2)]);
@@ -197,7 +197,7 @@ struct tensor final {
       size_t dim0Max = std::max(shapeOp1[0], shapeOp2[0]);
       size_t dim1Max = std::max(shapeOp1[1], shapeOp2[1]);
 
-      tensor<T> res = tensor<T>({dim0Max, dim1Max});
+      Tensor<T> res = Tensor<T>({dim0Max, dim1Max});
       for (size_t dim0 = 0; dim0 < dim0Max; dim0++) {
         for (size_t dim1 = 0; dim1 < dim1Max; dim1++) {
           T index1 = op1.offset + (dim0 % shapeOp1[0]) * stridesOp1[0] +
@@ -216,7 +216,7 @@ struct tensor final {
       size_t dim1Max = std::max(shapeOp1[1], shapeOp2[1]);
       size_t dim2Max = std::max(shapeOp1[2], shapeOp2[2]);
 
-      tensor<T> res = tensor<T>({dim0Max, dim1Max, dim2Max});
+      Tensor<T> res = Tensor<T>({dim0Max, dim1Max, dim2Max});
       for (size_t dim0 = 0; dim0 < dim0Max; dim0++) {
         for (size_t dim1 = 0; dim1 < dim1Max; dim1++) {
           for (size_t dim2 = 0; dim2 < dim2Max; dim2++) {
@@ -237,19 +237,19 @@ struct tensor final {
     throw std::runtime_error("unsupported shapes for arithmetic operation");
   }
 
-  tensor<T> operator+(const tensor<T> &op) const {
+  Tensor<T> operator+(const Tensor<T> &op) const {
     return apply(op, [](T v1, T v2) { return v1 + v2; });
   }
 
-  tensor<T> operator-(const tensor<T> &op) const {
+  Tensor<T> operator-(const Tensor<T> &op) const {
     return apply(op, [](T v1, T v2) { return v1 - v2; });
   }
 
-  tensor<T> operator*(const tensor<T> &op) const {
+  Tensor<T> operator*(const Tensor<T> &op) const {
     return apply(op, [](T v1, T v2) { return v1 * v2; });
   }
 
-  tensor<T> operator/(const tensor<T> &op) const {
+  Tensor<T> operator/(const Tensor<T> &op) const {
     return apply(op, [](T v1, T v2) {
       if (v2 == 0) {
         throw std::runtime_error("Division by zero is not allowed.");
@@ -258,7 +258,7 @@ struct tensor final {
     });
   }
 
-  tensor<T> matmul(const tensor<T> &op) const {
+  Tensor<T> matmul(const Tensor<T> &op) const {
     auto &op1 = *this;
     auto &op2 = op;
 
@@ -275,7 +275,7 @@ struct tensor final {
       const size_t dim0Max = op1.shape[0];
       const size_t dim1Max = op2.shape[1];
       const size_t maxI = op1.shape[1];
-      tensor<T> res = tensor<T>({dim0Max, dim1Max});
+      Tensor<T> res = Tensor<T>({dim0Max, dim1Max});
       for (size_t dim0 = 0; dim0 < dim0Max; dim0++) {
         for (size_t dim1 = 0; dim1 < dim1Max; dim1++) {
           float sum = 0.0f;
@@ -291,10 +291,10 @@ struct tensor final {
     throw std::runtime_error("matmul only supports 2-dimensional matrices");
   }
 
-  std::string to_string() const {
+  std::string toString() const {
     if (shape.size() > 2) {
       throw std::runtime_error(
-          "to_string() only works on tensors with one or two dimensions.");
+          "toString() only works on tensors with one or two dimensions.");
     }
     std::stringstream ss;
     if (shape.size() == 1) {
@@ -323,7 +323,7 @@ struct tensor final {
     return ss.str();
   }
 
-  static tensor<T> stack(std::initializer_list<tensor<T>> tensors) {
+  static Tensor<T> stack(std::initializer_list<Tensor<T>> tensors) {
     if (tensors.size() == 0) {
       throw std::runtime_error("Cannot stack empty list of tensors.");
     }
@@ -331,9 +331,9 @@ struct tensor final {
     auto outputShape = std::vector<size_t>({tensors.size()});
     outputShape.insert(outputShape.end(), inputShape.begin(), inputShape.end());
 
-    auto result = tensor<T>(outputShape);
+    auto result = Tensor<T>(outputShape);
     size_t offset = 0;
-    for (const tensor<T> &t : tensors) {
+    for (const Tensor<T> &t : tensors) {
       // todo: take offset and strides into account
       assert(t.offset == 0);
       assert(t.strides.back() == 1);
@@ -348,7 +348,7 @@ struct tensor final {
     return result;
   }
 
-  tensor<T> reshape(std::initializer_list<size_t> newShape) {
+  Tensor<T> reshape(std::initializer_list<size_t> newShape) {
     size_t oldShapeProduct =
         std::accumulate(shape.begin(), shape.end(), 1, std::multiplies());
     size_t newShapeProduct =
@@ -364,16 +364,16 @@ struct tensor final {
     std::vector<size_t> newStrides;
     calculateStridesFromShape(newShape, newStrides);
 
-    return tensor<T>(data, offset, size, newShape, newStrides);
+    return Tensor<T>(data, offset, size, newShape, newStrides);
   }
 
-  tensor<T> transpose() const {
+  Tensor<T> transpose() const {
     if (shape.size() == 1) {
       return *this;
     }
     std::vector<size_t> newShape;
     std::reverse_copy(shape.begin(), shape.end(), std::back_inserter(newShape));
-    auto result = tensor<T>(newShape);
+    auto result = Tensor<T>(newShape);
 
     if (shape.size() == 2) {
       size_t newIndex = 0;
@@ -403,7 +403,7 @@ struct tensor final {
     throw std::runtime_error("unsupported shape for transpose()");
   }
 
-  T meanSquareError(tensor<T> labels) {
+  T meanSquareError(Tensor<T> labels) {
     if (labels.shape != shape) {
       throw std::runtime_error(
           "meanSquareError: shapes of operands do not match");
@@ -423,19 +423,19 @@ struct tensor final {
     throw std::runtime_error("meanSquareError: unsupported shape size");
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const tensor<T> &t) {
-    os << t.to_string();
+  friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &t) {
+    os << t.toString();
     return os;
   }
 
   const std::vector<size_t> &getShape() const { return shape; }
 
-  tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,
+  Tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,
          std::vector<size_t> shape, std::vector<size_t> strides)
       : data(data), offset(offset), size(size), shape(std::move(shape)),
         strides(std::move(strides)) {}
 
-  bool operator==(const tensor<T> &other) const {
+  bool operator==(const Tensor<T> &other) const {
     if (this->shape != other.shape) {
       return false;
     }
@@ -447,7 +447,7 @@ struct tensor final {
     return true;
   }
 
-  tensor() = default;
+  Tensor() = default;
 
   std::shared_ptr<T[]> data;
   size_t offset = 0;
@@ -458,14 +458,14 @@ struct tensor final {
 
 namespace fmt {
 template <typename T>
-struct formatter<tensor<T>> {
+struct formatter<Tensor<T>> {
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx) {
     return ctx.begin();
   }
 
   template <typename FormatContext>
-  auto format(const tensor<T> &t, FormatContext &ctx) {
+  auto format(const Tensor<T> &t, FormatContext &ctx) {
     return format_to(ctx.out(), "{}", t.to_string());
   }
 };

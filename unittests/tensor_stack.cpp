@@ -3,9 +3,9 @@
 #include "tensor.h"
 
 TEST(Tensor, Stack) {
-  tensor<float> a = tensor<float>::vector({1.0f, 2.0f, 3.0f});
-  tensor<float> b = tensor<float>::vector({4.0f, 5.0f, 6.0f});
-  tensor<float> c = tensor<float>::stack({a, b});
+  Tensor<float> a = Tensor<float>::vector({1.0f, 2.0f, 3.0f});
+  Tensor<float> b = Tensor<float>::vector({4.0f, 5.0f, 6.0f});
+  Tensor<float> c = Tensor<float>::stack({a, b});
 
   EXPECT_EQ(1.0f, c[0][0].item());
   EXPECT_EQ(2.0f, c[0][1].item());

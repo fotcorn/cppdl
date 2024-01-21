@@ -19,24 +19,24 @@ Tensor net(Tensor input, Tensor w1, Tensor b1, Tensor w2, Tensor b2, Tensor w3,
 }
 
 int main() {
-  auto result = net<tensor<float>>(
-      DATASET_VALUES, LAYER_0_WEIGHTS, LAYER_0_BIASES, LAYER_1_WEIGHTS,
-      LAYER_1_BIASES, LAYER_2_WEIGHTS, LAYER_2_BIASES);
+  auto result = net<Tensor<float>>(
+      datasetValues, layer0Weights, layer0Biases, layer1Weights,
+      layer1Biases, layer2Weights, layer2Biases);
 
   int correct = 0;
-  for (size_t i = 0; i < DATASET_VALUES.getShape()[0]; i++) {
+  for (size_t i = 0; i < datasetValues.getShape()[0]; i++) {
     if (std::signbit(result[i].item()) ==
-        std::signbit(DATASET_LABELS[i].item())) {
+        std::signbit(datasetLabels[i].item())) {
       correct++;
     }
   }
 
   auto flatResult = result.reshape({100});
 
-  float accuracy = static_cast<float>(correct) / DATASET_VALUES.getShape()[0];
+  float accuracy = static_cast<float>(correct) / datasetValues.getShape()[0];
   fmt::println("Accuracy: {}", accuracy);
 
-  float mse = flatResult.meanSquareError(DATASET_LABELS);
+  float mse = flatResult.meanSquareError(datasetLabels);
   fmt::println("MSE: {}", mse);
 
   return 0;

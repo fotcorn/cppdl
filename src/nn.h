@@ -8,35 +8,35 @@
 class LinearLayer {
 public:
   LinearLayer(size_t numInputs, size_t numOutputs, bool hasBias = true)
-      : weight(tensor<float>::random({numInputs, numOutputs})) {
+      : weight(Tensor<float>::random({numInputs, numOutputs})) {
     if (hasBias) {
-      bias = tensor<float>::random({numOutputs});
+      bias = Tensor<float>::random({numOutputs});
     }
   }
-  LinearLayer(tensor<float> weight) : weight(std::move(weight)) {}
-  LinearLayer(tensor<float> weight, tensor<float> bias)
+  LinearLayer(Tensor<float> weight) : weight(std::move(weight)) {}
+  LinearLayer(Tensor<float> weight, Tensor<float> bias)
       : weight(std::move(weight)), bias(std::move(bias)) {}
 
-  tensor<float> forward(const tensor<float> &input) {
+  Tensor<float> forward(const Tensor<float> &input) {
     activations = input.matmul(weight) + bias;
     return activations;
   }
 
 private:
-  tensor<float> weight;
-  tensor<float> bias;
-  tensor<float> activations;
-  tensor<float> biasGrad;
-  tensor<float> weightGrad;
+  Tensor<float> weight;
+  Tensor<float> bias;
+  Tensor<float> activations;
+  Tensor<float> biasGrad;
+  Tensor<float> weightGrad;
 };
 
 class Tanh {
 public:
-  tensor<float> forward(const tensor<float> &input) {
+  Tensor<float> forward(const Tensor<float> &input) {
     activations = input.apply([](float val) { return std::tanh(val); });
     return activations;
   }
-  tensor<float> backward(const tensor<float> &outGrad) {
+  Tensor<float> backward(const Tensor<float> &outGrad) {
     auto res = activations.apply([](float val) {
       float temp = std::tanh(val);
       return 1.0f - temp * temp;
@@ -45,22 +45,22 @@ public:
   }
 
 private:
-  tensor<float> activations;
+  Tensor<float> activations;
 };
 
 class ReLU {
 public:
-  tensor<float> forward(const tensor<float> &input) {
+  Tensor<float> forward(const Tensor<float> &input) {
     activations =
         input.apply([](float val) { return std::max<float>(0, val); });
     return activations;
   }
-  tensor<float> backward(const tensor<float> &outGrad) {
+  Tensor<float> backward(const Tensor<float> &outGrad) {
     auto res =
         activations.apply([](float val) { return val > 0.0f ? 1.0f : 0.0f; });
     return res * outGrad;
   }
 
 private:
-  tensor<float> activations;
+  Tensor<float> activations;
 };

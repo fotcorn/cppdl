@@ -1,6 +1,6 @@
 #include "tensor.h"
 
-const auto DATASET_VALUES = tensor<float>::matrix2d(
+const auto datasetValues = Tensor<float>::matrix2d(
     {{1.1221146075f, 0.0814771734f},  {-0.8188294131f, 0.0587900639f},
      {1.6137096610f, -0.1246459001f}, {-0.9230091837f, 0.3652288990f},
      {0.1438514623f, 0.0443800492f},  {0.1644724657f, 0.1173834568f},
@@ -52,7 +52,7 @@ const auto DATASET_VALUES = tensor<float>::matrix2d(
      {-0.6856688884f, 0.4653569357f}, {1.7523743451f, 0.1645205143f},
      {0.1807895512f, -0.0002954176f}, {0.1210829726f, 1.0655522522f}});
 
-const auto DATASET_LABELS = tensor<float>::vector(
+const auto datasetLabels = Tensor<float>::vector(
     {-1.0000000000f, -1.0000000000f, 1.0000000000f,  -1.0000000000f,
      1.0000000000f,  1.0000000000f,  1.0000000000f,  1.0000000000f,
      1.0000000000f,  -1.0000000000f, 1.0000000000f,  -1.0000000000f,

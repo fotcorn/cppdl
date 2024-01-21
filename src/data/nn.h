@@ -2,8 +2,8 @@
 
 #include "tensor.h"
 
-const auto LAYER_0_WEIGHTS =
-    tensor<float>::matrix2d({{-0.07300148988542916f, 1.1359772893875315f},
+const auto layer0Weights =
+    Tensor<float>::matrix2d({{-0.07300148988542916f, 1.1359772893875315f},
                              {-0.9184968896309132f, 0.37166880762758114f},
                              {0.7848369578765014f, -0.44020510733312473f},
                              {1.2519853895296171f, -0.7345578819562889f},
@@ -20,7 +20,7 @@ const auto LAYER_0_WEIGHTS =
                              {-0.10695350092324434f, 0.03628832450627965f},
                              {0.3293045969659193f, 0.22231450023655533f}});
 
-const auto LAYER_0_BIASES = tensor<float>::vector({
+const auto layer0Biases = Tensor<float>::vector({
     -0.5621034413168672f,
     -0.21715450580438525f,
     -0.6172867756094845f,
@@ -39,7 +39,7 @@ const auto LAYER_0_BIASES = tensor<float>::vector({
     -0.37408025277912255f,
 });
 
-const auto LAYER_1_WEIGHTS = tensor<float>::matrix2d(
+const auto layer1Weights = Tensor<float>::matrix2d(
     {{-0.4594134245302827f, -0.24889608684806655f, 0.7828994545353823f,
       -0.2803842833249532f, 0.33534594905671755f, -0.17506722408494835f,
       0.15333784755597032f, -0.506561452252456f, 0.9926448305262807f,
@@ -137,7 +137,7 @@ const auto LAYER_1_WEIGHTS = tensor<float>::matrix2d(
       0.7119509318654991f, 0.022631262817546818f, -0.5888278862459624f,
       -0.4047599778565387f}});
 
-const auto LAYER_1_BIASES = tensor<float>::vector(
+const auto layer1Biases = Tensor<float>::vector(
     {-0.23233825586272566f, -0.03147441597629667f, -0.024918318756069f,
      -0.0023033376933657957f, 0.31776542872245406f, -0.3059969840237853f,
      -0.2406041428580013f, -0.3463862161509954f, -0.23252347561284817f,
@@ -145,7 +145,7 @@ const auto LAYER_1_BIASES = tensor<float>::vector(
      -0.11286609885112847f, 0.009097626288239317f, -0.060546166305712024f,
      0.1609924381705681f});
 
-const auto LAYER_2_WEIGHTS = tensor<float>::matrix2d({{0.30134911824250515f},
+const auto layer2Weights = Tensor<float>::matrix2d({{0.30134911824250515f},
                                                       {-0.6628069446492874f},
                                                       {-0.4578082679602536f},
                                                       {0.08982502466935978f},
@@ -162,4 +162,4 @@ const auto LAYER_2_WEIGHTS = tensor<float>::matrix2d({{0.30134911824250515f},
                                                       {0.2499096504008615f},
                                                       {1.1384087402432006f}});
 
-const auto LAYER_2_BIASES = tensor<float>::vector({-0.12341459914540999f});
+const auto layer2Biases = Tensor<float>::vector({-0.12341459914540999f});

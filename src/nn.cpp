@@ -19,23 +19,23 @@ int main() {
   LinearLayer layer2(16, 1);
 
   for (int epoch = 0; epoch < 1000; epoch++) {
-    auto r1 = layer0.forward(DATASET_VALUES);
+    auto r1 = layer0.forward(datasetValues);
     auto r2 = layer0Activation.forward(r1);
     auto r3 = layer1.forward(r2);
     auto r4 = layer1Activation.forward(r3);
     auto result = layer2.forward(r4);
 
     int correct = 0;
-    for (size_t i = 0; i < DATASET_VALUES.getShape()[0]; i++) {
+    for (size_t i = 0; i < datasetValues.getShape()[0]; i++) {
       if (std::signbit(result[i].item()) ==
-          std::signbit(DATASET_LABELS[i].item())) {
+          std::signbit(datasetLabels[i].item())) {
         correct++;
       }
     }
 
     auto flatResult = result.reshape({100});
 
-    float accuracy = static_cast<float>(correct) / DATASET_VALUES.getShape()[0];
+    float accuracy = static_cast<float>(correct) / datasetValues.getShape()[0];
     fmt::println("Accuracy: {}", accuracy);
   }
 

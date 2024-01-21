@@ -3,7 +3,7 @@
 #include "tensor.h"
 
 TEST(Slice, M22) {
-  tensor<float> t = tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
+  Tensor<float> t = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
 
   auto s1 = t[0];
   EXPECT_EQ(s1.getShape(), std::vector<size_t>({2}));
@@ -21,7 +21,7 @@ TEST(Slice, M22) {
 }
 
 TEST(Slice, M22_Inline) {
-  tensor<float> t = tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
+  Tensor<float> t = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
 
   EXPECT_EQ(t[0].getShape(), std::vector<size_t>({2}));
   EXPECT_EQ(t[0][0].item(), 1.0f);
@@ -37,7 +37,7 @@ TEST(Slice, M22_Inline) {
 }
 
 TEST(Slice, OutOfBounds) {
-  tensor<float> t = tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
+  Tensor<float> t = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
 
   EXPECT_THROW(t[2], std::runtime_error);
   EXPECT_THROW(t[0][2], std::runtime_error);

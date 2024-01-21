@@ -3,8 +3,8 @@
 #include "tensor.h"
 
 TEST(MatMul, M12_21) {
-  tensor<float> a = tensor<float>::matrix2d({{1.0f, 2.0f}});
-  tensor<float> b = tensor<float>::matrix2d({{3.5f}, {4.5f}});
+  Tensor<float> a = Tensor<float>::matrix2d({{1.0f, 2.0f}});
+  Tensor<float> b = Tensor<float>::matrix2d({{3.5f}, {4.5f}});
 
   auto res = a.matmul(b);
   EXPECT_EQ(res.getShape(), std::vector<size_t>({1, 1}));
@@ -12,8 +12,8 @@ TEST(MatMul, M12_21) {
 }
 
 TEST(MatMul, M21_12) {
-  tensor<float> a = tensor<float>::matrix2d({{3.5f}, {4.5f}});
-  tensor<float> b = tensor<float>::matrix2d({{1.0f, 2.0f}});
+  Tensor<float> a = Tensor<float>::matrix2d({{3.5f}, {4.5f}});
+  Tensor<float> b = Tensor<float>::matrix2d({{1.0f, 2.0f}});
 
   auto res = a.matmul(b);
   EXPECT_EQ(res.getShape(), std::vector<size_t>({2, 2}));
@@ -24,8 +24,8 @@ TEST(MatMul, M21_12) {
 }
 
 TEST(MatMul, M22_21) {
-  tensor<float> a = tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
-  tensor<float> b = tensor<float>::matrix2d({{3.5f}, {4.5f}});
+  Tensor<float> a = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
+  Tensor<float> b = Tensor<float>::matrix2d({{3.5f}, {4.5f}});
 
   auto res = a.matmul(b);
   EXPECT_EQ(res.getShape(), std::vector<size_t>({2, 1}));
@@ -34,8 +34,8 @@ TEST(MatMul, M22_21) {
 }
 
 TEST(MatMul, M22_22) {
-  tensor<float> a = tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
-  tensor<float> b = tensor<float>::matrix2d({{3.5f, 4.5f}, {5.5f, 6.5f}});
+  Tensor<float> a = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
+  Tensor<float> b = Tensor<float>::matrix2d({{3.5f, 4.5f}, {5.5f, 6.5f}});
 
   auto res = a.matmul(b);
   EXPECT_EQ(res.getShape(), std::vector<size_t>({2, 2}));
@@ -46,9 +46,9 @@ TEST(MatMul, M22_22) {
 }
 
 TEST(MatMul, M32_22) {
-  tensor<float> a =
-      tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}, {5.0f, 6.0f}});
-  tensor<float> b = tensor<float>::matrix2d({{3.5f, 4.5f}, {5.5f, 6.5f}});
+  Tensor<float> a =
+      Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}, {5.0f, 6.0f}});
+  Tensor<float> b = Tensor<float>::matrix2d({{3.5f, 4.5f}, {5.5f, 6.5f}});
 
   auto res = a.matmul(b);
   EXPECT_EQ(res.getShape(), std::vector<size_t>({3, 2}));
@@ -61,9 +61,9 @@ TEST(MatMul, M32_22) {
 }
 
 TEST(MatMul, M32_21) {
-  tensor<float> a =
-      tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}, {5.0f, 6.0f}});
-  tensor<float> b = tensor<float>::matrix2d({{3.5f}, {4.5f}});
+  Tensor<float> a =
+      Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}, {5.0f, 6.0f}});
+  Tensor<float> b = Tensor<float>::matrix2d({{3.5f}, {4.5f}});
 
   auto res = a.matmul(b);
   EXPECT_EQ(res.getShape(), std::vector<size_t>({3, 1}));

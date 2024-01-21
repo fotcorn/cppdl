@@ -17,15 +17,15 @@ public:
   float getFloatZeroOne() { return dis(gen); }
 };
 
-constexpr float LEARNING_RATE = 0.005;
-constexpr int NUM_SAMPLES = 4;
+constexpr float learningRate = 0.005;
+constexpr int numSamples = 4;
 
 struct Dataset {
   const char *name;
-  float groundTruth[NUM_SAMPLES];
+  float groundTruth[numSamples];
 };
 
-void learn(float groundTruth[NUM_SAMPLES]);
+void learn(float groundTruth[numSamples]);
 
 int main() {
   Dataset datasets[] = {{"or", {0, 1, 1, 1}},  {"nor", {1, 0, 0, 0}},
@@ -38,7 +38,7 @@ int main() {
   }
 }
 
-void learn(float groundTruth[NUM_SAMPLES]) {
+void learn(float groundTruth[numSamples]) {
   Random r;
 
   float l1p1w1 = r.getFloatZeroOne();
@@ -53,12 +53,12 @@ void learn(float groundTruth[NUM_SAMPLES]) {
   float l2w2 = r.getFloatZeroOne();
   float l2b = r.getFloatZeroOne();
 
-  float input[NUM_SAMPLES][2] = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+  float input[numSamples][2] = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
 
   int correct, epoch;
   for (epoch = 0; epoch < 1000000; epoch++) {
     correct = 0;
-    for (int i = 0; i < NUM_SAMPLES; i++) {
+    for (int i = 0; i < numSamples; i++) {
       // Perceptron with bias
       float a1 = input[i][0] * l1p1w1;
       float a2 = input[i][1] * l1p1w2;
@@ -81,20 +81,20 @@ void learn(float groundTruth[NUM_SAMPLES]) {
       float l2w2Grad = p2Res * loss;
 
       // Gradient descent
-      l2b += loss * LEARNING_RATE;
-      l2w1 += l2w1Grad * LEARNING_RATE;
-      l2w2 += l2w2Grad * LEARNING_RATE;
+      l2b += loss * learningRate;
+      l2w1 += l2w1Grad * learningRate;
+      l2w2 += l2w2Grad * learningRate;
 
-      l1p1b += (l2w1Grad + l2w2Grad) * LEARNING_RATE;
-      l1p2b += (l2w1Grad + l2w2Grad) * LEARNING_RATE;
+      l1p1b += (l2w1Grad + l2w2Grad) * learningRate;
+      l1p2b += (l2w1Grad + l2w2Grad) * learningRate;
 
-      l1p1w1 += input[i][0] * (l2w1Grad + l2w2Grad) * LEARNING_RATE;
-      l1p1w2 += input[i][1] * (l2w1Grad + l2w2Grad) * LEARNING_RATE;
+      l1p1w1 += input[i][0] * (l2w1Grad + l2w2Grad) * learningRate;
+      l1p1w2 += input[i][1] * (l2w1Grad + l2w2Grad) * learningRate;
 
-      l1p2w1 += input[i][0] * (l2w1Grad + l2w2Grad) * LEARNING_RATE;
-      l1p2w2 += input[i][1] * (l2w1Grad + l2w2Grad) * LEARNING_RATE;
+      l1p2w1 += input[i][0] * (l2w1Grad + l2w2Grad) * learningRate;
+      l1p2w2 += input[i][1] * (l2w1Grad + l2w2Grad) * learningRate;
     }
-    if (correct == NUM_SAMPLES) {
+    if (correct == numSamples) {
       fmt::println("Solution found after {} epochs", epoch);
       return;
     }

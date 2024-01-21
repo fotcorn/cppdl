@@ -1,5 +1,5 @@
 Checks: >
-  "-*,
+  -*,
   clang-diagnostic-*,
   llvm-*,
   -llvm-header-guard,
@@ -8,7 +8,7 @@ Checks: >
   -misc-unused-parameters,
   -misc-non-private-member-variables-in-classes,
   -misc-no-recursion,
-  readability-identifier-naming"
+  readability-identifier-naming,
   bugprone-argument-comment,
   bugprone-assert-side-effect,
   bugprone-branch-clone,

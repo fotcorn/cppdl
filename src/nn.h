@@ -21,8 +21,7 @@ public:
   }
 
   Tensor<float> forward(const Tensor<float> &input) {
-    activations = weight.matmul(input).transpose() + bias;
-    return activations;
+    return weight.matmul(input).transpose() + bias;
   }
 
   Tensor<float> backward(const Tensor<float> &outGrad,
@@ -43,7 +42,6 @@ private:
 
   Tensor<float> weight;
   Tensor<float> bias;
-  Tensor<float> activations;
 
 public:
   Tensor<float> biasGrad;

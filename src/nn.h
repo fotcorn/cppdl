@@ -8,24 +8,44 @@
 class LinearLayer {
 public:
   LinearLayer(size_t numInputs, size_t numOutputs, bool hasBias = true)
-      : weight(Tensor<float>::random({numInputs, numOutputs})) {
+      : weight(Tensor<float>::random({numOutputs, numInputs})) {
     if (hasBias) {
       bias = Tensor<float>::random({numOutputs});
     }
+    initGrad();
   }
-  LinearLayer(Tensor<float> weight) : weight(std::move(weight)) {}
+  LinearLayer(Tensor<float> weight) : weight(std::move(weight)) { initGrad(); }
   LinearLayer(Tensor<float> weight, Tensor<float> bias)
-      : weight(std::move(weight)), bias(std::move(bias)) {}
+      : weight(std::move(weight)), bias(std::move(bias)) {
+    initGrad();
+  }
 
   Tensor<float> forward(const Tensor<float> &input) {
-    activations = input.matmul(weight) + bias;
+    activations = weight.matmul(input).transpose() + bias;
     return activations;
   }
 
+  Tensor<float> backward(const Tensor<float> &outGrad,
+                         const Tensor<float> &input) {
+    biasGrad = biasGrad + outGrad.transpose();
+    auto inGrad = outGrad.matmul(input.transpose());
+    weightGrad = weightGrad + inGrad;
+    return inGrad;
+  }
+
 private:
+  void initGrad() {
+    weightGrad = Tensor<float>(weight.shape, 0.0f);
+    if (bias.size != 0) {
+      biasGrad = Tensor<float>(bias.shape, 0.0f);
+    }
+  }
+
   Tensor<float> weight;
   Tensor<float> bias;
   Tensor<float> activations;
+
+public:
   Tensor<float> biasGrad;
   Tensor<float> weightGrad;
 };

@@ -268,8 +268,9 @@ struct Tensor final {
     if (op1.shape.size() == 2) {
       if (op1.shape[1] != op2.shape[0]) {
         throw std::runtime_error(
-            "matmul: second dimension of first matrix does "
-            "not match first dimension of second matrix");
+            fmt::format("matmul: second dimension of first matrix does "
+                        "not match first dimension of second matrix {}, {}",
+                        op1.shape, op2.shape));
       }
 
       const size_t dim0Max = op1.shape[0];

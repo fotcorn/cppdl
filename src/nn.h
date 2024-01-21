@@ -5,24 +5,26 @@
 class LinearLayer {
 public:
   LinearLayer(size_t numInputs, size_t numOutputs, bool hasBias = true)
-      : weights(tensor<float>::random({numInputs, numOutputs})) {
+      : weight(tensor<float>::random({numInputs, numOutputs})) {
     if (hasBias) {
-      biases = tensor<float>::random({numOutputs});
+      bias = tensor<float>::random({numOutputs});
     }
   }
-  LinearLayer(tensor<float> weights) : weights(weights) {}
-  LinearLayer(tensor<float> weights, tensor<float> biases)
-      : weights(weights), biases(biases) {}
+  LinearLayer(tensor<float> weight) : weight(weight) {}
+  LinearLayer(tensor<float> weight, tensor<float> bias)
+      : weight(weight), bias(bias) {}
 
   tensor<float> forward(tensor<float> input) {
-    activations = input.matmul(weights) + biases;
+    activations = input.matmul(weight) + bias;
     return activations;
   }
 
 private:
-  tensor<float> weights;
-  tensor<float> biases;
+  tensor<float> weight;
+  tensor<float> bias;
   tensor<float> activations;
+  tensor<float> biasGrad;
+  tensor<float> weightGrad;
 };
 
 class Tanh {

@@ -466,7 +466,7 @@ struct formatter<Tensor<T>> {
 
   template <typename FormatContext>
   auto format(const Tensor<T> &t, FormatContext &ctx) {
-    return format_to(ctx.out(), "{}", t.to_string());
+    return format_to(ctx.out(), "{}", t.toString());
   }
 };
 } // namespace fmt

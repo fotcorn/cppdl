@@ -13,8 +13,8 @@
 #include <fmt/ranges.h>
 
 namespace {
-void calculateStridesFromShape(const std::vector<size_t> &shape,
-                               std::vector<size_t> &strides) {
+inline void calculateStridesFromShape(const std::vector<size_t> &shape,
+                                      std::vector<size_t> &strides) {
   strides.resize(shape.size());
   strides.back() = 1;
   for (int i = shape.size() - 2; i >= 0; --i) {
@@ -33,7 +33,7 @@ T generateUniformRandom() {
 
 template <typename T>
 struct tensor final {
-  tensor(std::vector<size_t> shape, T init = 0) : shape(shape) {
+  tensor(const std::vector<size_t> &shape, T init = 0) : shape(shape) {
     offset = 0;
     size = 1;
     for (int dim : shape) {
@@ -48,7 +48,7 @@ struct tensor final {
   };
 
   T item() const {
-    if (!(shape.size() == 1 && shape[0] == 1)) {
+    if (shape.size() != 1 || shape[0] != 1) {
       throw std::runtime_error(
           "item() only works on tensors with one element.");
     }
@@ -175,8 +175,7 @@ struct tensor final {
     assert(stridesOp1.size() == stridesOp2.size());
 
     for (size_t i = 0; i < shapeOp1.size(); i++) {
-      if (!(shapeOp1[i] == shapeOp2[i] || shapeOp1[i] == 1 ||
-            shapeOp2[i] == 1)) {
+      if (shapeOp1[i] != shapeOp2[i] && shapeOp1[i] != 1 && shapeOp2[i] != 1) {
         throw std::runtime_error(
             "incompatible shapes for arithmetic operation");
       }
@@ -288,9 +287,8 @@ struct tensor final {
       }
 
       return res;
-    } else {
-      throw std::runtime_error("matmul only supports 2-dimensional matrices");
     }
+    throw std::runtime_error("matmul only supports 2-dimensional matrices");
   }
 
   std::string to_string() const {
@@ -434,8 +432,8 @@ struct tensor final {
 
   tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,
          std::vector<size_t> shape, std::vector<size_t> strides)
-      : data(data), offset(offset), size(size), shape(shape), strides(strides) {
-  }
+      : data(data), offset(offset), size(size), shape(std::move(shape)),
+        strides(std::move(strides)) {}
 
   bool operator==(const tensor<T> &other) const {
     if (this->shape != other.shape) {
@@ -449,7 +447,7 @@ struct tensor final {
     return true;
   }
 
-  tensor() {}
+  tensor() = default;
 
   std::shared_ptr<T[]> data;
   size_t offset = 0;

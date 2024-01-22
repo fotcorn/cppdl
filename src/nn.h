@@ -51,34 +51,27 @@ public:
 class Tanh {
 public:
   Tensor<float> forward(const Tensor<float> &input) {
-    activations = input.apply([](float val) { return std::tanh(val); });
-    return activations;
+    return input.apply([](float val) { return std::tanh(val); });
   }
-  Tensor<float> backward(const Tensor<float> &outGrad) {
+  Tensor<float> backward(const Tensor<float> &outGrad,
+                         const Tensor<float> &activations) {
     auto res = activations.apply([](float val) {
       float temp = std::tanh(val);
       return 1.0f - temp * temp;
     });
     return res * outGrad;
   }
-
-private:
-  Tensor<float> activations;
 };
 
 class ReLU {
 public:
   Tensor<float> forward(const Tensor<float> &input) {
-    activations =
-        input.apply([](float val) { return std::max<float>(0, val); });
-    return activations;
+    return input.apply([](float val) { return std::max<float>(0, val); });
   }
-  Tensor<float> backward(const Tensor<float> &outGrad) {
+  Tensor<float> backward(const Tensor<float> &outGrad,
+                         const Tensor<float> &activations) {
     auto res =
         activations.apply([](float val) { return val > 0.0f ? 1.0f : 0.0f; });
     return res * outGrad;
   }
-
-private:
-  Tensor<float> activations;
 };

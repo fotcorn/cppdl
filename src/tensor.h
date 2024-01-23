@@ -177,7 +177,9 @@ struct Tensor final {
     for (size_t i = 0; i < shapeOp1.size(); i++) {
       if (shapeOp1[i] != shapeOp2[i] && shapeOp1[i] != 1 && shapeOp2[i] != 1) {
         throw std::runtime_error(
-            "incompatible shapes for arithmetic operation");
+            fmt::format("incompatible shapes for arithmetic operation "
+                        "(broadcasting applied): {}, {}",
+                        shapeOp1, shapeOp2));
       }
     }
 

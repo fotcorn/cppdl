@@ -46,6 +46,11 @@ struct Tensor final {
 
     calculateStridesFromShape(shape, strides);
   };
+  Tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,
+         std::vector<size_t> shape, std::vector<size_t> strides)
+      : data(data), offset(offset), size(size), shape(std::move(shape)),
+        strides(std::move(strides)) {}
+  Tensor() = default;
 
   T item() const {
     if (shape.size() != 1 || shape[0] != 1) {
@@ -433,11 +438,6 @@ struct Tensor final {
 
   const std::vector<size_t> &getShape() const { return shape; }
 
-  Tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,
-         std::vector<size_t> shape, std::vector<size_t> strides)
-      : data(data), offset(offset), size(size), shape(std::move(shape)),
-        strides(std::move(strides)) {}
-
   bool operator==(const Tensor<T> &other) const {
     if (this->shape != other.shape) {
       return false;
@@ -449,8 +449,6 @@ struct Tensor final {
     }
     return true;
   }
-
-  Tensor() = default;
 
   std::shared_ptr<T[]> data;
   size_t offset = 0;

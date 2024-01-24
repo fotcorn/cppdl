@@ -21,13 +21,14 @@ public:
   }
 
   Tensor<float> forward(const Tensor<float> &input) {
-    return weight.matmul(input).transpose() + bias;
+    return weight.matmul(input.transpose()) + bias;
   }
 
   Tensor<float> backward(const Tensor<float> &outGrad,
                          const Tensor<float> &input) {
-    biasGrad = biasGrad + outGrad.transpose();
-    auto inGrad = outGrad.matmul(input.transpose());
+    biasGrad =
+        biasGrad + Tensor<float>::ones({1, outGrad.shape[0]}).matmul(outGrad);
+    auto inGrad = outGrad.transpose().matmul(input);
     weightGrad = weightGrad + inGrad;
     return inGrad;
   }

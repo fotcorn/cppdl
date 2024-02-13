@@ -48,7 +48,7 @@ struct Tensor final {
   };
   Tensor(std::shared_ptr<T[]> data, size_t offset, size_t size,
          std::vector<size_t> shape, std::vector<size_t> strides)
-      : data(data), offset(offset), size(size), shape(std::move(shape)),
+      : shape(std::move(shape)), data(data), offset(offset), size(size),
         strides(std::move(strides)) {}
   Tensor() = default;
 
@@ -450,10 +450,10 @@ struct Tensor final {
     return true;
   }
 
+  std::vector<size_t> shape;
   std::shared_ptr<T[]> data;
   size_t offset = 0;
   size_t size = 0;
-  std::vector<size_t> shape;
   std::vector<size_t> strides;
 };
 

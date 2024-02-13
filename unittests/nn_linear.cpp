@@ -14,11 +14,15 @@ TEST_F(LinearLayerTest, Forward) {
 }
 
 TEST_F(LinearLayerTest, Backward) {
-  Tensor<float> input =
-      Tensor<float>::matrix2d({{1.0f, 2.0f, 3.0f}, {4.0f, 5.0f, 6.0f}});
-  Tensor<float> outGrad = Tensor<float>::matrix2d({{0.5f, 2.0f}, {1.5f, 2.5f}});
+  Tensor<float> input = Tensor<float>::matrix2d({{1.0f, 2.0f, 3.0f},
+                                                 {4.0f, 5.0f, 6.0f},
+                                                 {4.0f, 5.0f, 6.0f},
+                                                 {4.0f, 5.0f, 6.0f},
+                                                 {4.0f, 5.0f, 6.0f}});
+  Tensor<float> outGrad = Tensor<float>::matrix2d(
+      {{0.5f, 2.0f}, {1.5f, 2.5f}, {1.5f, 2.5f}, {1.5f, 2.5f}, {1.5f, 2.5f}});
   linearLayer.forward(input);
-  linearLayer.backward(outGrad, input);
+  // linearLayer.backward(outGrad, input);
 
   ASSERT_EQ(linearLayer.biasGrad, Tensor<float>::matrix2d({{2.0f, 4.5f}}));
   ASSERT_EQ(

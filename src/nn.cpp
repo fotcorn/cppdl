@@ -10,7 +10,9 @@ int main() {
   ReLU layer1Activation;
   LinearLayer layer2(16, 1);
 
-  for (int epoch = 0; epoch < 100; epoch++) {
+  float learningRate = 0.0001f;
+
+  for (int epoch = 0; epoch < 1000; epoch++) {
     // Forward pass.
     auto z0 = layer0.forward(datasetValues);
     auto a0 = layer0Activation.forward(z0);
@@ -52,7 +54,6 @@ int main() {
         layer0.weightGrad + delta.transpose().matmul(datasetValues);
 
     // Gradient descent.
-    constexpr float learningRate = 0.00001f;
 
     layer2.weight = layer2.weight - layer2.weightGrad * learningRate;
     layer2.bias = layer2.bias - layer2.biasGrad * learningRate;
@@ -62,6 +63,10 @@ int main() {
 
     layer0.weight = layer0.weight - layer0.weightGrad * learningRate;
     layer0.bias = layer0.bias - layer0.biasGrad * learningRate;
+
+    if (epoch % 20 == 0 && epoch != 0) {
+      learningRate *= 0.5f;
+    }
   }
   return 0;
 }

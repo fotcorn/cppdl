@@ -35,6 +35,10 @@ int main() {
     auto loss = (flatResult - datasetLabels).reshape({100, 1});
 
     // Backwards pass.
+    layer0.zeroGrad();
+    layer1.zeroGrad();
+    layer2.zeroGrad();
+
     /// Layer 2
     auto outGrad = layer2.backward(a1, loss);
 

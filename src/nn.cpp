@@ -35,26 +35,18 @@ int main() {
     auto loss = (flatResult - datasetLabels).reshape({100, 1});
 
     // Backwards pass.
-    auto lossSum = Tensor<float>::ones({1, loss.shape[0]}).matmul(loss);
-    fmt::println("Loss: {}", lossSum[0].item());
-    layer2.biasGrad = layer2.biasGrad + lossSum;
-    layer2.weightGrad = layer2.weightGrad + loss.transpose().matmul(a1);
+    /// Layer 2
+    auto outGrad = layer2.backward(a1, loss);
 
-    auto sp = layer1Activation.backward(z1);
-    auto delta = loss.matmul(layer2.weight) * sp;
-    auto deltaSum = Tensor<float>::ones({1, delta.shape[0]}).matmul(delta);
-    layer1.biasGrad = layer1.biasGrad + deltaSum;
-    layer1.weightGrad = layer1.weightGrad + delta.transpose().matmul(a0);
+    /// Layer 1
+    outGrad = layer1Activation.backward(z1, outGrad);
+    outGrad = layer1.backward(a0, outGrad);
 
-    sp = layer0Activation.backward(z0);
-    delta = delta.matmul(layer1.weight) * sp;
-    deltaSum = Tensor<float>::ones({1, delta.shape[0]}).matmul(delta);
-    layer0.biasGrad = layer0.biasGrad + deltaSum;
-    layer0.weightGrad =
-        layer0.weightGrad + delta.transpose().matmul(datasetValues);
+    // Layer 0
+    outGrad = layer0Activation.backward(z0, outGrad);
+    outGrad = layer0.backward(datasetValues, outGrad);
 
     // Gradient descent.
-
     layer2.weight = layer2.weight - layer2.weightGrad * learningRate;
     layer2.bias = layer2.bias - layer2.biasGrad * learningRate;
 

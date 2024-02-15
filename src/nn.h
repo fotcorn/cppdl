@@ -26,6 +26,15 @@ public:
     return res2;
   }
 
+  Tensor<float> backward(const Tensor<float> &activations,
+                         const Tensor<float> &outGrad) {
+    auto outGradSum =
+        Tensor<float>::ones({1, outGrad.shape[0]}).matmul(outGrad);
+    biasGrad = biasGrad + outGradSum;
+    weightGrad = weightGrad + outGrad.transpose().matmul(activations);
+    return outGrad.matmul(weight);
+  }
+
 private:
   void initGrad() {
     weightGrad = Tensor<float>(weight.shape, 0.0f);
@@ -59,7 +68,9 @@ public:
   Tensor<float> forward(const Tensor<float> &input) {
     return input.apply([](float val) { return std::max<float>(0, val); });
   }
-  Tensor<float> backward(const Tensor<float> &input) {
-    return input.apply([](float val) { return val > 0.0f ? 1.0f : 0.0f; });
+  Tensor<float> backward(const Tensor<float> &input,
+                         const Tensor<float> &outGrad) {
+    return outGrad *
+           input.apply([](float val) { return val > 0.0f ? 1.0f : 0.0f; });
   }
 };

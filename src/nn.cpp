@@ -34,6 +34,9 @@ int main() {
     auto flatResult = result.reshape({100});
     auto loss = (flatResult - datasetLabels).reshape({100, 1});
 
+    auto lossSum = Tensor<float>::ones({1, loss.shape[0]}).matmul(loss);
+    fmt::println("Loss: {}", lossSum[0].item());
+
     // Backwards pass.
     layer0.zeroGrad();
     layer1.zeroGrad();

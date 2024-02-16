@@ -73,11 +73,17 @@ struct Tensor final {
     return t;
   }
 
-  static Tensor<T> vector(std::initializer_list<T> data) {
-    std::vector<size_t> shape = {data.size()};
+  template <typename InputIt>
+  static Tensor<T> vector(InputIt begin, InputIt end) {
+    size_t size = std::distance(begin, end);
+    std::vector<size_t> shape = {size};
     Tensor<T> t(shape);
-    std::copy(data.begin(), data.end(), t.data.get());
+    std::copy(begin, end, t.data.get());
     return t;
+  }
+
+  static Tensor<T> vector(std::initializer_list<T> data) {
+    return vector(data.begin(), data.end());
   }
 
   static Tensor<T>

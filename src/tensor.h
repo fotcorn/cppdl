@@ -437,7 +437,7 @@ struct Tensor final {
     throw std::runtime_error("meanSquareError: unsupported shape size");
   }
 
-  Tensor<T> softmax() {
+  Tensor<T> softmax(size_t dimension = 0) {
     Tensor<T> result(shape);
 
     if (shape.size() == 1) {
@@ -449,6 +449,38 @@ struct Tensor final {
       }
       for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
         result.data.get()[dim0] /= sum;
+      }
+      return result;
+    }
+
+    if (shape.size() == 2) {
+      if (dimension != 0 && dimension != 1) {
+        throw std::runtime_error(
+            fmt::format("Invalid dimension in softmax: {}", dimension));
+      }
+      // Index into strides and shape, based on which dimension (row or column)
+      // we calculate on.
+      int i0 = 1;
+      int i1 = 0;
+      if (dimension == 1) {
+        i0 = 0;
+        i1 = 1;
+      }
+      for (size_t dim0 = 0; dim0 < shape[i0]; dim0++) {
+        float sum = 0.0f;
+        for (size_t dim1 = 0; dim1 < shape[i1]; dim1++) {
+          float expElem =
+              std::exp(data[offset + dim0 * strides[i0] + dim1 * strides[i1]]);
+          size_t resultIndex =
+              dim0 * result.strides[i0] + dim1 * result.strides[i1];
+          result.data.get()[resultIndex] = expElem;
+          sum += expElem;
+        }
+        for (size_t dim1 = 0; dim1 < shape[i1]; dim1++) {
+          size_t resultIndex =
+              dim0 * result.strides[i0] + dim1 * result.strides[i1];
+          result.data.get()[resultIndex] /= sum;
+        }
       }
       return result;
     }

@@ -437,6 +437,25 @@ struct Tensor final {
     throw std::runtime_error("meanSquareError: unsupported shape size");
   }
 
+  Tensor<T> softmax() {
+    Tensor<T> result(shape);
+
+    if (shape.size() == 1) {
+      float sum = 0.0f;
+      for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
+        float expElem = std::exp(data[offset + dim0 * strides[0]]);
+        result.data.get()[dim0] = expElem;
+        sum += expElem;
+      }
+      for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
+        result.data.get()[dim0] /= sum;
+      }
+      return result;
+    }
+
+    throw std::runtime_error("meanSquareError: unsupported shape size");
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &t) {
     os << t.toString();
     return os;

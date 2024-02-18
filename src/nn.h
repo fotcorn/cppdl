@@ -26,12 +26,12 @@ public:
     return res2;
   }
 
-  Tensor<float> backward(const Tensor<float> &activations,
+  Tensor<float> backward(const Tensor<float> &input,
                          const Tensor<float> &outGrad) {
     auto outGradSum =
         Tensor<float>::ones({1, outGrad.shape[0]}).matmul(outGrad);
     biasGrad = biasGrad + outGradSum;
-    weightGrad = weightGrad + outGrad.transpose().matmul(activations);
+    weightGrad = weightGrad + outGrad.transpose().matmul(input);
     return outGrad.matmul(weight);
   }
 

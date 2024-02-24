@@ -10,7 +10,11 @@ add_executable(nn
 	${CMAKE_CURRENT_SOURCE_DIR}/nn.cpp
 )
 
-foreach(TARGET inference perceptron nn)
+add_executable(mnist
+	${CMAKE_CURRENT_SOURCE_DIR}/mnist.cpp
+)
+
+foreach(TARGET inference perceptron nn mnist)
 	if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 		target_compile_options(${TARGET} PRIVATE -Wall -Wextra -Wpedantic -march=native)
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

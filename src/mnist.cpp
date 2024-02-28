@@ -27,8 +27,7 @@ std::vector<Tensor<float>> loadImages(std::string path) {
     for (size_t i = 0; i < imageSize; ++i) {
       image[i] = buffer[i] / 255.0f;
     }
-    images.emplace_back(
-        Tensor<float>::vector(std::begin(image), std::end(image)));
+    images.push_back(Tensor<float>::vector(std::begin(image), std::end(image)));
   }
   return images;
 }
@@ -55,20 +54,33 @@ std::vector<Tensor<float>> loadLabels(std::string path) {
 }
 
 int main() {
-  auto trainImages = loadImages("../data/mnist/train-images-idx3-ubyte");
-  auto validationImages = loadImages("../data/mnist/t10k-images-idx3-ubyte");
+  auto rawTrainImages = loadImages("../data/mnist/train-images-idx3-ubyte");
+  auto rawTrainLabels = loadLabels("../data/mnist/train-labels-idx1-ubyte");
 
-  auto trainLabels = loadLabels("../data/mnist/train-labels-idx1-ubyte");
+  std::vector<Tensor<float>> trainImages, trainLabels;
+  for (size_t i = 0; i < rawTrainImages.size(); i += batchSize) {
+    auto batchEnd = std::min(rawTrainImages.size(), i + batchSize);
+    std::vector<Tensor<float>> batchImages(rawTrainImages.begin() + i,
+                                           rawTrainImages.begin() + batchEnd);
+    trainImages.push_back(
+        Tensor<float>::stack(batchImages.begin(), batchImages.end()));
+
+    std::vector<Tensor<float>> batchLabels(rawTrainLabels.begin() + i,
+                                           rawTrainLabels.begin() + batchEnd);
+    trainLabels.push_back(
+        Tensor<float>::stack(batchLabels.begin(), batchLabels.end()));
+  }
+
+  auto validationImages = loadImages("../data/mnist/t10k-images-idx3-ubyte");
   auto validationLabels = loadLabels("../data/mnist/t10k-labels-idx1-ubyte");
 
   const size_t numTrainImages = trainImages.size();
-  const size_t numValidationImages = validationImages.size();
   const size_t numBatches = numTrainImages / batchSize;
 
   LinearLayer layer0(imageSize, 16);
   ReLU layer0Activation;
   LinearLayer layer1(16, 16);
-  ReLU layer0Activation;
+  ReLU layer1Activation;
   LinearLayer layer2(16, 16);
   ReLU layer2Activation;
   LinearLayer layer3(16, 10);
@@ -77,37 +89,38 @@ int main() {
   for (int epoch = 0; epoch < 1000; epoch++) {
     for (size_t batch = 0; batch < numBatches; batch++) {
       // Forward pass.
-      auto z0 = layer0.forward(datasetValues);
+      auto z0 = layer0.forward(trainImages[batch]);
       auto a0 = layer0Activation.forward(z0);
       auto z1 = layer1.forward(a0);
       auto a1 = layer1Activation.forward(z1);
-      auto result = layer2.forward(a1);
+      auto z2 = layer2.forward(a1);
+      auto a2 = layer2Activation.forward(z2);
+      auto result = layer3.forward(a2);
 
-      // Accuracy and loss calculation.
-      int correct = 0;
-      for (size_t i = 0; i < datasetValues.getShape()[0]; i++) {
-        if (std::signbit(result[i].item()) ==
-            std::signbit(datasetLabels[i].item())) {
-          correct++;
-        }
-      }
-      float accuracy =
-          static_cast<float>(correct) / datasetValues.getShape()[0];
-      fmt::println("Accuracy: {}", accuracy);
+      fmt::println("{}", result.shape);
+      return 0;
 
-      auto flatResult = result.reshape({100});
-      auto loss = (flatResult - datasetLabels).reshape({100, 1});
+      // Loss calculation.
+      /*
+      auto flatResult = result.reshape({10});
+      auto loss = (flatResult - trainLabels[batch]).reshape({100, 1});
 
       auto lossSum = Tensor<float>::ones({1, loss.shape[0]}).matmul(loss);
-      fmt::println("Loss: {}", lossSum[0].item());
+      fmt::println("Train Loss: {}", lossSum[0].item());
+
 
       // Backwards pass.
       layer0.zeroGrad();
       layer1.zeroGrad();
       layer2.zeroGrad();
+      layer3.zeroGrad();
 
-      /// Layer 2
-      auto outGrad = layer2.backward(a1, loss);
+      /// Layer 3
+      auto outGrad = layer3.backward(a2, loss);
+
+      /// Layer 1
+      outGrad = layer2Activation.backward(z2, outGrad);
+      outGrad = layer2.backward(a1, outGrad);
 
       /// Layer 1
       outGrad = layer1Activation.backward(z1, outGrad);
@@ -115,9 +128,12 @@ int main() {
 
       // Layer 0
       outGrad = layer0Activation.backward(z0, outGrad);
-      outGrad = layer0.backward(datasetValues, outGrad);
+      outGrad = layer0.backward(trainImages[batch], outGrad);
 
       // Gradient descent.
+      layer3.weight = layer3.weight - layer3.weightGrad * learningRate;
+      layer3.bias = layer3.bias - layer3.biasGrad * learningRate;
+
       layer2.weight = layer2.weight - layer2.weightGrad * learningRate;
       layer2.bias = layer2.bias - layer2.biasGrad * learningRate;
 
@@ -126,11 +142,25 @@ int main() {
 
       layer0.weight = layer0.weight - layer0.weightGrad * learningRate;
       layer0.bias = layer0.bias - layer0.biasGrad * learningRate;
-
-      if (epoch % lrDecayEpoch == 0 && epoch != 0) {
-        learningRate *= lrDecayRate;
-      }
+      */
     }
+
+    if (epoch % lrDecayEpoch == 0 && epoch != 0) {
+      learningRate *= lrDecayRate;
+    }
+
+    // TODO: calculate validation loss and accuracy.
+    /*
+          int correct = 0;
+      for (size_t i = 0; i < datasetValues.getShape()[0]; i++) {
+        if (std::signbit(result[i].item()) ==
+            std::signbit(datasetLabels[i].item())) {
+          correct++;
+        }
+      }
+    */
+    // float accuracy = static_cast<float>(correct) /
+    // datasetValues.getShape()[0]; fmt::println("Accuracy: {}", accuracy);
   }
 
   return 0;

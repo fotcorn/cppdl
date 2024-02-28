@@ -28,8 +28,7 @@ public:
 
   Tensor<float> backward(const Tensor<float> &input,
                          const Tensor<float> &outGrad) {
-    auto outGradSum =
-        Tensor<float>::ones({1, outGrad.shape[0]}).matmul(outGrad);
+    auto outGradSum = outGrad.sum();
     biasGrad = biasGrad + outGradSum;
     weightGrad = weightGrad + outGrad.transpose().matmul(input);
     return outGrad.matmul(weight);

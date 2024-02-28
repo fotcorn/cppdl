@@ -22,7 +22,7 @@ TEST_F(LinearLayerTest, Backward) {
   auto activations = linearLayer.forward(input);
   outGrad = linearLayer.backward(input, outGrad);
 
-  ASSERT_EQ(linearLayer.biasGrad, Tensor<float>::matrix2d({{2.0f, 4.5f}}));
+  ASSERT_EQ(linearLayer.biasGrad, Tensor<float>::vector({2.0f, 4.5f}));
   ASSERT_EQ(
       linearLayer.weightGrad,
       Tensor<float>::matrix2d({{6.5f, 8.5f, 10.5f}, {12.0f, 16.5f, 21.0f}}));

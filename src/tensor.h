@@ -494,6 +494,49 @@ struct Tensor final {
     throw std::runtime_error("softmax: unsupported shape size");
   }
 
+  Tensor<T> sum(size_t dimension = 0) const {
+    if (dimension >= shape.size()) {
+      throw std::runtime_error(fmt::format(
+          "sum: invalid dimension {} for shape {}", dimension, shape));
+    }
+    std::vector newShape(shape);
+    newShape.erase(newShape.begin() + dimension);
+    if (newShape.size() == 0) {
+      newShape.push_back(1);
+    }
+    Tensor<T> result(newShape);
+
+    if (shape.size() == 1) {
+      float sum = 0.0f;
+      for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
+        sum += data[offset + dim0 * strides[0]];
+      }
+      result.data.get()[0] = sum;
+      return result;
+    }
+
+    if (shape.size() == 2) {
+      // Index into strides and shape, based on which dimension (row or column)
+      // we calculate on.
+      int i0 = 1;
+      int i1 = 0;
+      if (dimension == 1) {
+        i0 = 0;
+        i1 = 1;
+      }
+      for (size_t dim0 = 0; dim0 < shape[i0]; dim0++) {
+        float sum = 0.0f;
+        for (size_t dim1 = 0; dim1 < shape[i1]; dim1++) {
+          sum += data[offset + dim0 * strides[i0] + dim1 * strides[i1]];
+        }
+        result.data.get()[dim0] = sum;
+      }
+      return result;
+    }
+
+    throw std::runtime_error("sum: unsupported shape size");
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &t) {
     os << t.toString();
     return os;

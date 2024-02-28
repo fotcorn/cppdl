@@ -8,9 +8,10 @@ add_executable(cppdl_test
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_stack.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_transpose.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tensor_reshape.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tensor_softmax.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tensor_sum.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nn_activation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nn_linear.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tensor_softmax.cpp
 )
 
 target_include_directories(cppdl_test PRIVATE ../src)

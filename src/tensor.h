@@ -337,29 +337,35 @@ struct Tensor final {
     return ss.str();
   }
 
-  static Tensor<T> stack(std::initializer_list<Tensor<T>> tensors) {
-    if (tensors.size() == 0) {
+  template <typename InputIt>
+  static Tensor<T> stack(InputIt begin, InputIt end) {
+    if (begin == end) {
       throw std::runtime_error("Cannot stack empty list of tensors.");
     }
-    auto inputShape = tensors.begin()->shape;
-    auto outputShape = std::vector<size_t>({tensors.size()});
+    auto inputShape = begin->shape;
+    auto firstDimension = static_cast<size_t>(std::distance(begin, end));
+    auto outputShape = std::vector<size_t>({firstDimension});
     outputShape.insert(outputShape.end(), inputShape.begin(), inputShape.end());
 
     auto result = Tensor<T>(outputShape);
     size_t offset = 0;
-    for (const Tensor<T> &t : tensors) {
+    for (auto it = begin; it != end; ++it) {
       // todo: take offset and strides into account
-      assert(t.offset == 0);
-      assert(t.strides.back() == 1);
+      assert(it->offset == 0);
+      assert(it->strides.back() == 1);
 
-      if (t.shape != inputShape) {
+      if (it->shape != inputShape) {
         throw std::runtime_error("stack: mismatched shapes");
       }
-      std::copy(t.data.get(), t.data.get() + t.size,
+      std::copy(it->data.get(), it->data.get() + it->size,
                 result.data.get() + offset);
-      offset += t.size;
+      offset += it->size;
     }
     return result;
+  }
+
+  static Tensor<T> stack(std::initializer_list<Tensor<T>> tensors) {
+    return stack(tensors.begin(), tensors.end());
   }
 
   Tensor<T> reshape(std::initializer_list<size_t> newShape) {

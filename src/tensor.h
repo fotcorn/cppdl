@@ -499,8 +499,6 @@ struct Tensor final {
     return os;
   }
 
-  const std::vector<size_t> &getShape() const { return shape; }
-
   bool operator==(const Tensor<T> &other) const {
     if (this->shape != other.shape) {
       return false;

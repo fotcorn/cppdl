@@ -5,7 +5,7 @@
 TEST(Transpose, Vector1D) {
   Tensor<float> t = Tensor<float>::vector({1.0f, 2.0f, 3.0f});
   auto transposed = t.transpose();
-  EXPECT_EQ(transposed.getShape(), std::vector<size_t>({3}));
+  EXPECT_EQ(transposed.shape, std::vector<size_t>({3}));
   EXPECT_EQ(transposed[0].item(), 1.0f);
   EXPECT_EQ(transposed[1].item(), 2.0f);
   EXPECT_EQ(transposed[2].item(), 3.0f);
@@ -14,7 +14,7 @@ TEST(Transpose, Vector1D) {
 TEST(Transpose, Matrix2D) {
   Tensor<float> t = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});
   auto transposed = t.transpose();
-  EXPECT_EQ(transposed.getShape(), std::vector<size_t>({2, 2}));
+  EXPECT_EQ(transposed.shape, std::vector<size_t>({2, 2}));
   EXPECT_EQ(transposed[0][0].item(), 1.0f);
   EXPECT_EQ(transposed[0][1].item(), 3.0f);
   EXPECT_EQ(transposed[1][0].item(), 2.0f);
@@ -30,8 +30,8 @@ TEST(Transpose, Tensor3D) {
                                               {21.0f, 22.0f, 23.0f, 24.0f}});
   Tensor<float> t = Tensor<float>::stack({t1, t2});
   auto transposed = t.transpose();
-  EXPECT_EQ(t.getShape(), std::vector<size_t>({2, 3, 4}));
-  EXPECT_EQ(transposed.getShape(), std::vector<size_t>({4, 3, 2}));
+  EXPECT_EQ(t.shape, std::vector<size_t>({2, 3, 4}));
+  EXPECT_EQ(transposed.shape, std::vector<size_t>({4, 3, 2}));
   for (size_t i = 0; i < 4; i++) {
     for (size_t j = 0; j < 3; j++) {
       for (size_t k = 0; k < 2; k++) {

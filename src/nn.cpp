@@ -22,13 +22,13 @@ int main() {
 
     // Accuracy and loss calculation.
     int correct = 0;
-    for (size_t i = 0; i < datasetValues.getShape()[0]; i++) {
+    for (size_t i = 0; i < datasetValues.shape[0]; i++) {
       if (std::signbit(result[i].item()) ==
           std::signbit(datasetLabels[i].item())) {
         correct++;
       }
     }
-    float accuracy = static_cast<float>(correct) / datasetValues.getShape()[0];
+    float accuracy = static_cast<float>(correct) / datasetValues.shape[0];
     fmt::println("Accuracy: {}", accuracy);
 
     auto flatResult = result.reshape({100});

@@ -37,7 +37,7 @@ TEST(Tensor, ReLU) {
   EXPECT_EQ(0.0f, res[0][1].item());
   EXPECT_EQ(3.0f, res[1][0].item());
   EXPECT_EQ(0.0f, res[1][1].item());
-  EXPECT_EQ(res.getShape(), std::vector<size_t>({2, 2}));
+  EXPECT_EQ(res.shape, std::vector<size_t>({2, 2}));
 }
 
 TEST(Tensor, ReLU3D) {
@@ -52,7 +52,7 @@ TEST(Tensor, ReLU3D) {
   EXPECT_EQ(2.0f, c[1][0][1].item());
   EXPECT_EQ(0.0f, c[1][1][0].item());
   EXPECT_EQ(4.0f, c[1][1][1].item());
-  EXPECT_EQ(c.getShape(), std::vector<size_t>({2, 2, 2}));
+  EXPECT_EQ(c.shape, std::vector<size_t>({2, 2, 2}));
 }
 
 TEST(Tensor, Add3D) {
@@ -68,5 +68,5 @@ TEST(Tensor, Add3D) {
   EXPECT_EQ(7.0f, d[1][0][1].item());
   EXPECT_EQ(8.0f, d[1][1][0].item());
   EXPECT_EQ(9.0f, d[1][1][1].item());
-  EXPECT_EQ(d.getShape(), std::vector<size_t>({2, 2, 2}));
+  EXPECT_EQ(d.shape, std::vector<size_t>({2, 2, 2}));
 }

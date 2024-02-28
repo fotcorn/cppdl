@@ -13,5 +13,5 @@ TEST(Tensor, Stack) {
   EXPECT_EQ(4.0f, c[1][0].item());
   EXPECT_EQ(5.0f, c[1][1].item());
   EXPECT_EQ(6.0f, c[1][2].item());
-  EXPECT_EQ(c.getShape(), std::vector<size_t>({2, 3}));
+  EXPECT_EQ(c.shape, std::vector<size_t>({2, 3}));
 }

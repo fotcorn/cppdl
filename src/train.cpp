@@ -77,12 +77,12 @@ struct placeholder_tensor {
 * /
 
     int main() {
-  auto w1 = tensor<float>::random(LAYER_0_WEIGHTS.getShape());
-  auto b1 = tensor<float>::random(LAYER_0_BIASES.getShape());
-  auto w2 = tensor<float>::random(LAYER_1_WEIGHTS.getShape());
-  auto b2 = tensor<float>::random(LAYER_1_BIASES.getShape());
-  auto w3 = tensor<float>::random(LAYER_2_WEIGHTS.getShape());
-  auto b3 = tensor<float>::random(LAYER_2_BIASES.getShape());
+  auto w1 = tensor<float>::random(LAYER_0_WEIGHTS.shape);
+  auto b1 = tensor<float>::random(LAYER_0_BIASES.shape);
+  auto w2 = tensor<float>::random(LAYER_1_WEIGHTS.shape);
+  auto b2 = tensor<float>::random(LAYER_1_BIASES.shape);
+  auto w3 = tensor<float>::random(LAYER_2_WEIGHTS.shape);
+  auto b3 = tensor<float>::random(LAYER_2_BIASES.shape);
 
   trace_tensor<float> input;
 

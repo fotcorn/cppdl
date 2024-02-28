@@ -491,7 +491,7 @@ struct Tensor final {
       return result;
     }
 
-    throw std::runtime_error("meanSquareError: unsupported shape size");
+    throw std::runtime_error("softmax: unsupported shape size");
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &t) {

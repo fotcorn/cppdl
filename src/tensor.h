@@ -437,7 +437,7 @@ struct Tensor final {
     if (shape.size() == 1) {
       for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
         T observed = data[offset + dim0 * strides[0]];
-        T label = labels.data[offset + dim0 * strides[0]];
+        T label = labels.data[labels.offset + dim0 * labels.strides[0]];
         T val = observed - label;
         total += val * val;
       }

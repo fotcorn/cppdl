@@ -7,10 +7,10 @@
 constexpr size_t imageSize = 784;
 
 // Hyperparameters
-constexpr float initialLearningRate = 0.0001f;
-constexpr int lrDecayEpoch = 20;
-constexpr float lrDecayRate = 0.5f;
-constexpr size_t batchSize = 25;
+constexpr float initialLearningRate = 0.005f;
+constexpr int lrDecayEpoch = 100;
+constexpr float lrDecayRate = 1.0f;
+constexpr size_t batchSize = 5;
 
 std::vector<Tensor<float>> loadImages(std::string path) {
   std::ifstream file(path, std::ios::binary);
@@ -84,7 +84,7 @@ int main() {
   LinearLayer layer2(16, 10);
 
   float learningRate = initialLearningRate;
-  for (int epoch = 0; epoch < 1000; epoch++) {
+  for (int epoch = 0; epoch < 10000000; epoch++) {
 
     int trainCorrect = 0;
     float trainLoss = 0.0f;

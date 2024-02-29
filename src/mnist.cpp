@@ -99,7 +99,8 @@ int main() {
       auto a1 = layer1Activation.forward(z1);
       auto z2 = layer2.forward(a1);
       auto a2 = layer2Activation.forward(z2);
-      auto result = layer3.forward(a2);
+      auto z3 = layer3.forward(a2);
+      auto result = z3.softmax(1);
 
       // Loss calculation.
       auto loss = result - trainLabels[batch];

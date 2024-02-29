@@ -519,7 +519,7 @@ struct Tensor final {
     }
     std::vector newShape(shape);
     newShape.erase(newShape.begin() + dimension);
-    if (newShape.size() == 0) {
+    if (newShape.empty()) {
       newShape.push_back(1);
     }
     Tensor<size_t> result(newShape);
@@ -573,7 +573,7 @@ struct Tensor final {
     }
     std::vector newShape(shape);
     newShape.erase(newShape.begin() + dimension);
-    if (newShape.size() == 0) {
+    if (newShape.empty()) {
       newShape.push_back(1);
     }
     Tensor<T> result(newShape);

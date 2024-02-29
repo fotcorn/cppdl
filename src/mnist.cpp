@@ -100,7 +100,7 @@ int main() {
 
       // Loss calculation.
       auto loss = result - trainLabels[batch];
-      trainLoss += loss.sum().sum().item();
+      trainLoss += result.meanSquareError(trainLabels[batch]);
 
       // Accuracy calculation.
       auto predictedLabels = result.argmax(1);
@@ -147,7 +147,7 @@ int main() {
     float accuracy = static_cast<float>(trainCorrect) / rawTrainImages.size();
 
     fmt::println("Epoch: {}, Train Loss: {}, Train Accuracy: {}", epoch,
-                 trainLoss, accuracy);
+                 trainLoss / numBatches, accuracy);
 
     // TODO: calculate validation loss and accuracy.
   }

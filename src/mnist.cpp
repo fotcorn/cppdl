@@ -7,9 +7,9 @@
 constexpr size_t imageSize = 784;
 
 // Hyperparameters
-constexpr float initialLearningRate = 0.005f;
-constexpr int lrDecayEpoch = 100;
-constexpr float lrDecayRate = 1.0f;
+constexpr float initialLearningRate = 0.001f;
+constexpr int lrDecayEpoch = 20;
+constexpr float lrDecayRate = 0.5f;
 constexpr size_t batchSize = 5;
 
 std::vector<Tensor<float>> loadImages(std::string path) {
@@ -71,10 +71,14 @@ int main() {
         Tensor<float>::stack(batchLabels.begin(), batchLabels.end()));
   }
 
-  auto validationImages = loadImages("../data/mnist/t10k-images-idx3-ubyte");
-  auto validationLabels = loadLabels("../data/mnist/t10k-labels-idx1-ubyte");
+  auto rawValidationImages = loadImages("../data/mnist/t10k-images-idx3-ubyte");
+  auto rawValidationLabels = loadLabels("../data/mnist/t10k-labels-idx1-ubyte");
+  auto validationImages = Tensor<float>::stack(rawValidationImages.begin(),
+                                               rawValidationImages.end());
+  auto validationLabels = Tensor<float>::stack(rawValidationLabels.begin(),
+                                               rawValidationLabels.end());
 
-  const size_t numTrainImages = trainImages.size();
+  const size_t numTrainImages = rawTrainImages.size();
   const size_t numBatches = numTrainImages / batchSize;
 
   LinearLayer layer0(imageSize, 16);
@@ -84,8 +88,7 @@ int main() {
   LinearLayer layer2(16, 10);
 
   float learningRate = initialLearningRate;
-  for (int epoch = 0; epoch < 10000000; epoch++) {
-
+  for (int epoch = 1; epoch < 10000000; epoch++) {
     int trainCorrect = 0;
     float trainLoss = 0.0f;
 
@@ -107,7 +110,7 @@ int main() {
       auto trueLabels = trainLabels[batch].argmax(1);
 
       for (size_t i = 0; i < predictedLabels.size; i++) {
-        if (predictedLabels[i] == trueLabels[i]) {
+        if (predictedLabels.data[i] == trueLabels.data[i]) {
           trainCorrect++;
         }
       }
@@ -140,16 +143,41 @@ int main() {
       layer0.bias = layer0.bias - layer0.biasGrad * learningRate;
     }
 
-    if (epoch % lrDecayEpoch == 0 && epoch != 0) {
+    if (epoch % lrDecayEpoch == 0) {
       learningRate *= lrDecayRate;
+      fmt::println("New learning rate: {}", learningRate);
     }
 
-    float accuracy = static_cast<float>(trainCorrect) / rawTrainImages.size();
+    float accuracy = static_cast<float>(trainCorrect) / numTrainImages;
 
     fmt::println("Epoch: {}, Train Loss: {}, Train Accuracy: {}", epoch,
                  trainLoss / numBatches, accuracy);
 
-    // TODO: calculate validation loss and accuracy.
+    if (epoch % 10 == 0) {
+      auto z0 = layer0.forward(validationImages);
+      auto a0 = layer0Activation.forward(z0);
+      auto z1 = layer1.forward(a0);
+      auto a1 = layer1Activation.forward(z1);
+      auto z2 = layer2.forward(a1);
+      auto result = z2.softmax(1);
+
+      float valLoss = result.meanSquareError(validationLabels);
+
+      auto predictedLabels = result.argmax(1);
+      auto trueLabels = validationLabels.argmax(1);
+
+      size_t valCorrect = 0;
+      for (size_t i = 0; i < predictedLabels.size; i++) {
+        if (predictedLabels.data[i] == trueLabels.data[i]) {
+          valCorrect++;
+        }
+      }
+
+      float valAccuracy =
+          static_cast<float>(valCorrect) / rawValidationImages.size();
+      fmt::println("Validation - Epoch: {}, Loss: {}, Accuracy: {}", epoch,
+                   valLoss, valAccuracy);
+    }
   }
 
   return 0;

@@ -87,7 +87,13 @@ int main() {
 
   float learningRate = initialLearningRate;
   for (int epoch = 0; epoch < 1000; epoch++) {
+
+    int trainCorrect = 0;
+    float trainLoss = 0.0f;
+
     for (size_t batch = 0; batch < numBatches; batch++) {
+      fmt::println("Batch: {}/{}", batch, numBatches);
+
       // Forward pass.
       auto z0 = layer0.forward(trainImages[batch]);
       auto a0 = layer0Activation.forward(z0);
@@ -97,17 +103,19 @@ int main() {
       auto a2 = layer2Activation.forward(z2);
       auto result = layer3.forward(a2);
 
-      fmt::println("{}", result.shape);
-      return 0;
-
       // Loss calculation.
-      /*
-      auto flatResult = result.reshape({10});
-      auto loss = (flatResult - trainLabels[batch]).reshape({100, 1});
+      auto loss = result - trainLabels[batch];
+      trainLoss += loss.sum().sum().item();
 
-      auto lossSum = Tensor<float>::ones({1, loss.shape[0]}).matmul(loss);
-      fmt::println("Train Loss: {}", lossSum[0].item());
+      // Accuracy calculation.
+      auto predictedLabels = result.argmax(1);
+      auto trueLabels = trainLabels[batch].argmax(1);
 
+      for (size_t i = 0; i < predictedLabels.size; i++) {
+        if (predictedLabels[i] == trueLabels[i]) {
+          trainCorrect++;
+        }
+      }
 
       // Backwards pass.
       layer0.zeroGrad();
@@ -142,25 +150,18 @@ int main() {
 
       layer0.weight = layer0.weight - layer0.weightGrad * learningRate;
       layer0.bias = layer0.bias - layer0.biasGrad * learningRate;
-      */
     }
 
     if (epoch % lrDecayEpoch == 0 && epoch != 0) {
       learningRate *= lrDecayRate;
     }
 
+    float accuracy = static_cast<float>(trainCorrect) / rawTrainImages.size();
+
+    fmt::println("Epoch: {}, Train Loss: {}, Train Accuracy: {}", epoch,
+                 trainLoss, accuracy);
+
     // TODO: calculate validation loss and accuracy.
-    /*
-          int correct = 0;
-      for (size_t i = 0; i < datasetValues.getShape()[0]; i++) {
-        if (std::signbit(result[i].item()) ==
-            std::signbit(datasetLabels[i].item())) {
-          correct++;
-        }
-      }
-    */
-    // float accuracy = static_cast<float>(correct) /
-    // datasetValues.getShape()[0]; fmt::println("Accuracy: {}", accuracy);
   }
 
   return 0;

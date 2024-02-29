@@ -8,9 +8,9 @@ constexpr size_t imageSize = 784;
 
 // Hyperparameters
 constexpr float initialLearningRate = 0.001f;
-constexpr int lrDecayEpoch = 20;
+constexpr int lrDecayEpoch = 30;
 constexpr float lrDecayRate = 0.5f;
-constexpr size_t batchSize = 5;
+constexpr size_t batchSize = 200;
 
 std::vector<Tensor<float>> loadImages(std::string path) {
   std::ifstream file(path, std::ios::binary);

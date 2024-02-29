@@ -294,7 +294,11 @@ struct Tensor final {
         for (size_t dim1 = 0; dim1 < dim1Max; dim1++) {
           T sum = 0;
           for (size_t i = 0; i < maxI; i++) {
-            sum += op1[dim0][i].item() * op2[i][dim1].item();
+            T o1 = op1.data[op1.offset + dim0 * op1.strides[0] +
+                            i * op1.strides[1]];
+            T o2 = op2.data[op2.offset + i * op2.strides[0] +
+                            dim1 * op2.strides[1]];
+            sum += o1 * o2;
           }
           res.data[dim0 * res.strides[0] + dim1] = sum;
         }

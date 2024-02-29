@@ -92,8 +92,6 @@ int main() {
     float trainLoss = 0.0f;
 
     for (size_t batch = 0; batch < numBatches; batch++) {
-      fmt::println("Batch: {}/{}", batch, numBatches);
-
       // Forward pass.
       auto z0 = layer0.forward(trainImages[batch]);
       auto a0 = layer0Activation.forward(z0);

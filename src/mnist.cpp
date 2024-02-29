@@ -81,9 +81,7 @@ int main() {
   ReLU layer0Activation;
   LinearLayer layer1(16, 16);
   ReLU layer1Activation;
-  LinearLayer layer2(16, 16);
-  ReLU layer2Activation;
-  LinearLayer layer3(16, 10);
+  LinearLayer layer2(16, 10);
 
   float learningRate = initialLearningRate;
   for (int epoch = 0; epoch < 1000; epoch++) {
@@ -98,9 +96,7 @@ int main() {
       auto z1 = layer1.forward(a0);
       auto a1 = layer1Activation.forward(z1);
       auto z2 = layer2.forward(a1);
-      auto a2 = layer2Activation.forward(z2);
-      auto z3 = layer3.forward(a2);
-      auto result = z3.softmax(1);
+      auto result = z2.softmax(1);
 
       // Loss calculation.
       auto loss = result - trainLabels[batch];
@@ -120,14 +116,10 @@ int main() {
       layer0.zeroGrad();
       layer1.zeroGrad();
       layer2.zeroGrad();
-      layer3.zeroGrad();
 
-      /// Layer 3
-      auto outGrad = layer3.backward(a2, loss);
-
-      /// Layer 1
-      outGrad = layer2Activation.backward(z2, outGrad);
-      outGrad = layer2.backward(a1, outGrad);
+      /// Layer 2
+      // outGrad = layer2Activation.backward(z2, outGrad);
+      auto outGrad = layer2.backward(a1, loss);
 
       /// Layer 1
       outGrad = layer1Activation.backward(z1, outGrad);
@@ -138,9 +130,6 @@ int main() {
       outGrad = layer0.backward(trainImages[batch], outGrad);
 
       // Gradient descent.
-      layer3.weight = layer3.weight - layer3.weightGrad * learningRate;
-      layer3.bias = layer3.bias - layer3.biasGrad * learningRate;
-
       layer2.weight = layer2.weight - layer2.weightGrad * learningRate;
       layer2.bias = layer2.bias - layer2.biasGrad * learningRate;
 

@@ -494,6 +494,60 @@ struct Tensor final {
     throw std::runtime_error("softmax: unsupported shape size");
   }
 
+  Tensor<size_t> argmax(size_t dimension) const {
+    if (dimension >= shape.size()) {
+      throw std::runtime_error(fmt::format(
+          "argmax: invalid dimension {} for shape {}", dimension, shape));
+    }
+    std::vector newShape(shape);
+    newShape.erase(newShape.begin() + dimension);
+    if (newShape.size() == 0) {
+      newShape.push_back(1);
+    }
+    Tensor<size_t> result(newShape);
+
+    if (shape.size() == 1) {
+      T maxValue = data[offset];
+      size_t maxIndex = 0;
+      for (size_t dim0 = 1; dim0 < shape[0]; dim0++) {
+        T currentValue = data[offset + dim0 * strides[0]];
+        if (currentValue > maxValue) {
+          maxValue = currentValue;
+          maxIndex = dim0;
+        }
+      }
+      result.data[0] = maxIndex;
+      return result;
+    }
+
+    if (shape.size() == 2) {
+      // Index into strides and shape, based on which dimension (row or column)
+      // we calculate on.
+      int i0 = 1;
+      int i1 = 0;
+      if (dimension == 1) {
+        i0 = 0;
+        i1 = 1;
+      }
+      for (size_t dim0 = 0; dim0 < shape[i0]; dim0++) {
+        T maxValue = std::numeric_limits<T>::min();
+        size_t maxIndex = 0;
+        for (size_t dim1 = 0; dim1 < shape[i1]; dim1++) {
+          T currentValue =
+              data[offset + dim0 * strides[i0] + dim1 * strides[i1]];
+          if (currentValue > maxValue) {
+            maxValue = currentValue;
+            maxIndex = dim1;
+          }
+        }
+        result.data[dim0] = maxIndex;
+      }
+      return result;
+    }
+
+    throw std::runtime_error("argmax: unsupported shape size");
+  }
+
   Tensor<T> sum(size_t dimension = 0) const {
     if (dimension >= shape.size()) {
       throw std::runtime_error(fmt::format(

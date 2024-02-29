@@ -444,6 +444,20 @@ struct Tensor final {
       return total / shape[0];
     }
 
+    if (shape.size() == 2) {
+      T total = 0;
+      for (size_t dim1 = 0; dim1 < shape[1]; dim1++) {
+        for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
+          T observed = data[offset + dim0 * strides[0] + dim1 * strides[1]];
+          T label = labels.data[labels.offset + dim0 * labels.strides[0] +
+                                dim1 * labels.strides[1]];
+          T val = observed - label;
+          total += val * val;
+        }
+      }
+      return total / (shape[0] * shape[1]);
+    }
+
     throw std::runtime_error("meanSquareError: unsupported shape size");
   }
 

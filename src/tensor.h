@@ -292,7 +292,7 @@ struct Tensor final {
       Tensor<T> res = Tensor<T>({dim0Max, dim1Max});
       for (size_t dim0 = 0; dim0 < dim0Max; dim0++) {
         for (size_t dim1 = 0; dim1 < dim1Max; dim1++) {
-          float sum = 0.0f;
+          T sum = 0;
           for (size_t i = 0; i < maxI; i++) {
             sum += op1[dim0][i].item() * op2[i][dim1].item();
           }
@@ -447,9 +447,9 @@ struct Tensor final {
     Tensor<T> result(shape);
 
     if (shape.size() == 1) {
-      float sum = 0.0f;
+      T sum = 0;
       for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
-        float expElem = std::exp(data[offset + dim0 * strides[0]]);
+        T expElem = std::exp(data[offset + dim0 * strides[0]]);
         result.data.get()[dim0] = expElem;
         sum += expElem;
       }
@@ -473,9 +473,9 @@ struct Tensor final {
         i1 = 1;
       }
       for (size_t dim0 = 0; dim0 < shape[i0]; dim0++) {
-        float sum = 0.0f;
+        T sum = 0.0;
         for (size_t dim1 = 0; dim1 < shape[i1]; dim1++) {
-          float expElem =
+          T expElem =
               std::exp(data[offset + dim0 * strides[i0] + dim1 * strides[i1]]);
           size_t resultIndex =
               dim0 * result.strides[i0] + dim1 * result.strides[i1];
@@ -507,7 +507,7 @@ struct Tensor final {
     Tensor<T> result(newShape);
 
     if (shape.size() == 1) {
-      float sum = 0.0f;
+      T sum = 0.0f;
       for (size_t dim0 = 0; dim0 < shape[0]; dim0++) {
         sum += data[offset + dim0 * strides[0]];
       }
@@ -525,7 +525,7 @@ struct Tensor final {
         i1 = 1;
       }
       for (size_t dim0 = 0; dim0 < shape[i0]; dim0++) {
-        float sum = 0.0f;
+        T sum = 0.0f;
         for (size_t dim1 = 0; dim1 < shape[i1]; dim1++) {
           sum += data[offset + dim0 * strides[i0] + dim1 * strides[i1]];
         }

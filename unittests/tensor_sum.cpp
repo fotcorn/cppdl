@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "tensor.h"
+#include "cppdl/tensor.h"
 
 TEST(TensorSum, Sum1D) {
   Tensor<float> t = Tensor<float>::vector({1.0f, 2.0f, 3.0f, 4.0f});

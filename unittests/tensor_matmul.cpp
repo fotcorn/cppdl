@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "tensor.h"
+#include "cppdl/tensor.h"
 
 TEST(MatMul, M12_21) {
   Tensor<float> a = Tensor<float>::matrix2d({{1.0f, 2.0f}});

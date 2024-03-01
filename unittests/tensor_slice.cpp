@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "tensor.h"
+#include "cppdl/tensor.h"
 
 TEST(Slice, M22) {
   Tensor<float> t = Tensor<float>::matrix2d({{1.0f, 2.0f}, {3.0f, 4.0f}});

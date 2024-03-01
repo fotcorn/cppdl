@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "tensor.h"
+#include "cppdl/tensor.h"
 
 TEST(Tensor, Add) {
   Tensor<float> a = Tensor<float>::vector({1.0f, 2.0f});

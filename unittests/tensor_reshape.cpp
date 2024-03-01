@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "tensor.h"
+#include "cppdl/tensor.h"
 
 TEST(TensorReshape, ShapesDoNotMatch) {
   Tensor<float> t({2, 3});

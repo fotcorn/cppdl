@@ -16,7 +16,7 @@ add_executable(cppdl_test
     ${CMAKE_CURRENT_SOURCE_DIR}/nn_linear.cpp
 )
 
-target_include_directories(cppdl_test PRIVATE ../src)
+target_include_directories(cppdl_test PRIVATE ../include)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 target_compile_options(cppdl_test PRIVATE -Wall -Wextra -Wpedantic -march=native)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

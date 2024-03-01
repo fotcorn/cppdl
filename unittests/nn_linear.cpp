@@ -1,4 +1,4 @@
-#include "nn.h"
+#include "cppdl/nn.h"
 #include <gtest/gtest.h>
 
 class LinearLayerTest : public ::testing::Test {

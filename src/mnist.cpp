@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include "nn.h"
+#include "cppdl/nn.h"
 
 constexpr size_t imageSize = 784;
 

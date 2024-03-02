@@ -115,24 +115,48 @@ public:
   }
 };
 
-// TODO: constructor + classof
 class InputNode : UnaryNode {
 public:
-  InputNode(std::vector<std::size_t> shape)
+  InputNode(std::vector<std::size_t>)
       : UnaryNode(NodeKind::Input, std::numeric_limits<NodeId>::max()) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Input;
   }
 };
 class ReLUNode : UnaryNode {
+public:
   ReLUNode(NodeId input) : UnaryNode(NodeKind::ReLU, input) {}
+  static bool classof(const Node *node) {
+    return node->getKind() == NodeKind::ReLU;
+  }
 };
-class TransposeNode : UnaryNode {};
+class TransposeNode : UnaryNode {
+public:
+  TransposeNode(NodeId input) : UnaryNode(NodeKind::Transpose, input) {}
+  static bool classof(const Node *node) {
+    return node->getKind() == NodeKind::Transpose;
+  }
+};
 class ReshapeNode : UnaryNode {
   std::vector<std::size_t> newShape;
+
+public:
+  ReshapeNode(NodeId input, std::vector<std::size_t> newShape)
+      : UnaryNode(NodeKind::Reshape, input), newShape(newShape) {}
+  static bool classof(const Node *node) {
+    return node->getKind() == NodeKind::Reshape;
+  }
 };
 class SumNode : UnaryNode {
-  // std::size_t dim;
+  std::size_t dim;
+
+public:
+  SumNode(NodeId input, std::size_t dim)
+      : UnaryNode(NodeKind::Sum, input), dim(dim) {}
+  static bool classof(const Node *node) {
+    return node->getKind() == NodeKind::Sum;
+  }
+  std::size_t getDim() const { return dim; }
 };
 
 template <typename ToType, typename FromType>

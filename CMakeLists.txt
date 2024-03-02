@@ -11,6 +11,18 @@ project(cppdl
 # https://github.com/google/googletest/blob/main/googletest/README.md#visual-studio-dynamic-vs-static-runtimes
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
+macro(add_cppdl_executable NAME)
+    add_executable(${NAME} ${ARGN})
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(${NAME} PRIVATE -Wall -Wextra -Wpedantic -march=native)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        target_compile_options(${NAME} PRIVATE /W4)
+    endif()
+    target_compile_features(${NAME} PUBLIC cxx_std_17)
+    target_include_directories(${NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    target_link_libraries(${NAME} PRIVATE fmt::fmt)
+endmacro()
+
 add_subdirectory(src)
 add_subdirectory(unittests)
 add_subdirectory(vendor/googletest)

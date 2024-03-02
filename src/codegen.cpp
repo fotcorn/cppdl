@@ -7,7 +7,7 @@ int main() {
   auto tensorF32 = m.type("tensor").param(f32).build();
   auto t4xf32 = m.type("tensor").param("4xf32").build();
 
-  auto ret = m.functionType().param(f32).returnType(f32).build();
+  auto ret = m.functionType().param(f32).returnType(t4xf32).build();
 
   auto funcOp = m.op("func.func")
                     .attr("sym_name", "main")
@@ -22,9 +22,9 @@ int main() {
                   .param(funcOp.result(0))
                   .param(funcOp.result(1))
                   .build();
-  auto add2 = block.op("arith.add")
-                  .type(f32)
-                  .param(funcOp.result(0))
-                  .param(add1.result(1))
-                  .build();
+  block.op("arith.add")
+      .type(f32)
+      .param(funcOp.result(0))
+      .param(add1.result(1))
+      .build();
 }

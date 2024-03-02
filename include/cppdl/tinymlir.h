@@ -2,6 +2,9 @@
 
 #include <string>
 
+// TODO: remove pragma
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 namespace tmlir {
 
 class BlockBuilder;

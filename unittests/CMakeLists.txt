@@ -17,7 +17,7 @@ add_cppdl_executable(cppdl_test
 
 target_link_libraries(cppdl_test PRIVATE gtest gtest_main)
 
-add_test(NAME cppdl_test COMMAND cppdl_test)
-
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-                  DEPENDS cppdl_test)
+add_custom_target(check
+    COMMAND $<TARGET_FILE:cppdl_test>
+    DEPENDS cppdl_test
+    USES_TERMINAL)

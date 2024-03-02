@@ -1,84 +1,87 @@
-// clang-format off
-
-/*
-func.func @main(
-  %alpha: tensor<f32>, %x: tensor<4xf32>, %y: tensor<4xf32>
-) -> tensor<4xf32> {
-  %0 = stablehlo.broadcast_in_dim %alpha, dims = []
-    : (tensor<f32>) -> tensor<4xf32>
-  %1 = stablehlo.multiply %0, %x : tensor<4xf32>
-  %2 = stablehlo.add %1, %y : tensor<4xf32>
-  func.return %2: tensor<4xf32>
-}
-
-module {
-  "toy.func"() ({
-  ^bb0(%arg0: tensor<*xf64> loc("test/Examples/Toy/Ch2/codegen.toy":4:1), %arg1: tensor<*xf64> loc("test/Examples/Toy/Ch2/codegen.toy":4:1)):
-    %0 = "toy.transpose"(%arg0) : (tensor<*xf64>) -> tensor<*xf64> loc("test/Examples/Toy/Ch2/codegen.toy":5:10)
-    %1 = "toy.transpose"(%arg1) : (tensor<*xf64>) -> tensor<*xf64> loc("test/Examples/Toy/Ch2/codegen.toy":5:25)
-    %2 = "toy.mul"(%0, %1) : (tensor<*xf64>, tensor<*xf64>) -> tensor<*xf64> loc("test/Examples/Toy/Ch2/codegen.toy":5:25)
-    "toy.return"(%2) : (tensor<*xf64>) -> () loc("test/Examples/Toy/Ch2/codegen.toy":5:3)
-  }) {sym_name = "multiply_transpose", type = (tensor<*xf64>, tensor<*xf64>) -> tensor<*xf64>} : () -> () loc("test/Examples/Toy/Ch2/codegen.toy":4:1)
-*/
-
-// clang-format on
+#pragma once
 
 #include <string>
 
-namespace mm {
-
-class Module {
-public:
-  TypeBuilder type(std::string name) { return TypeBuilder(name); }
-  OpBuilder op(std::string operation) { return OpBuilder(operation); }
-};
+namespace tmlir {
 
 class Type {};
 class TypeBuilder {
   TypeBuilder(std::string name) {}
 
 public:
-  TypeBuilder &param(const Type &type) { return *this; }
   TypeBuilder &param(std::string) { return *this; }
+  TypeBuilder &param(const Type &type) { return *this; }
   Type build(){};
 
   friend class Module;
 };
 
-class OpBuilder {
-  OpBuilder(std::string operation) {}
+class FunctionType {};
+class FunctionTypeBuilder {
+  FunctionTypeBuilder() {}
+
+public:
+  FunctionTypeBuilder &param(const Type &type) { return *this; }
+  FunctionTypeBuilder &returnType(const Type &type) { return *this; }
+  FunctionType build() { return FunctionType(); };
 
   friend class Module;
 };
 
-}; // namespace mm
+class Op;
+class OpBuilder {
+  OpBuilder(std::string operation) {}
 
-int main() {
+public:
+  OpBuilder &param(const Type &type) { return *this; }
+  OpBuilder &type(const Type &type) { return *this; }
+  OpBuilder &attr(const std::string &name, const std::string &value) {
+    return *this;
+  }
+  OpBuilder &attr(const std::string &name, const Type &type) { return *this; }
+  OpBuilder &attr(const std::string &name, const FunctionType &type) {
+    return *this;
+  }
+  Op build();
 
-  mm::Module m;
+  friend class Module;
+  friend class Block;
+};
 
-  auto f32 = m.type("f32").build();
-  auto tensorF32 = m.type("tensor").param(f32).build();
-  auto t4xf32 = m.type("tensor").param("4xf32").build();
+class Block {
+  Block(std::string name) {}
 
-  auto ret = m.functionType().param(f32).returnType(f32).build();
+public:
+  OpBuilder op(std::string operation) { return OpBuilder(operation); }
+  friend class BlockBuilder;
+};
+class BlockBuilder {
+  std::string name;
 
-  auto funcOp = m.op("func.func")
-                    .attr("sym_name", "main")
-                    .attr("type", ret)
-                    .param("alpha", tensorF32)
-                    .type(f32)
-                    .build();
+public:
+  BlockBuilder(std::string name) : name(name) {}
+  Block build() { return Block(name); }
+  BlockBuilder &param(const std::string &name, const Type &type) {
+    return *this;
+  }
+};
 
-  auto block = funcOp.region().block("bb0");
-  auto add1 = block.op("arith.add")
-                  .type(f32)
-                  .param(funcOp.result(0))
-                  .param(funcOp.result(1))
-                  .build();
-  auto add2 = block.op("arith.add")
-                  .type(f32)
-                  .param(funcOp.result(0))
-                  .param(add1.result(1))
-                  .build();
-}
+class Region {
+public:
+  BlockBuilder block(std::string name) { return BlockBuilder(name); }
+};
+
+class Op {
+public:
+  Type result(size_t index) { return Type(); }
+  Region region() { return Region(); }
+};
+
+class Module {
+public:
+  TypeBuilder type(std::string name) { return TypeBuilder(name); }
+  FunctionTypeBuilder functionType() { return FunctionTypeBuilder(); }
+  OpBuilder op(std::string operation) { return OpBuilder(operation); }
+};
+
+}; // namespace tmlir

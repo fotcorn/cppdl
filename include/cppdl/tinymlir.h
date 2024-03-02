@@ -4,6 +4,9 @@
 
 namespace tmlir {
 
+class BlockBuilder;
+class OpBuilder;
+
 class Type {};
 class TypeBuilder {
   TypeBuilder(std::string name) {}
@@ -11,7 +14,7 @@ class TypeBuilder {
 public:
   TypeBuilder &param(std::string) { return *this; }
   TypeBuilder &param(const Type &type) { return *this; }
-  Type build(){};
+  Type build();
 
   friend class Module;
 };
@@ -23,12 +26,46 @@ class FunctionTypeBuilder {
 public:
   FunctionTypeBuilder &param(const Type &type) { return *this; }
   FunctionTypeBuilder &returnType(const Type &type) { return *this; }
-  FunctionType build() { return FunctionType(); };
+  FunctionType build();
 
   friend class Module;
 };
 
-class Op;
+class Module {
+public:
+  TypeBuilder type(std::string name);
+  FunctionTypeBuilder functionType();
+  OpBuilder op(std::string operation);
+};
+
+class Region {
+public:
+  BlockBuilder block(std::string name);
+};
+
+class Block {
+  Block(std::string name) {}
+
+public:
+  OpBuilder op(std::string operation);
+  friend class BlockBuilder;
+};
+class BlockBuilder {
+  std::string name;
+
+public:
+  BlockBuilder(std::string name) : name(name) {}
+  Block build();
+  BlockBuilder &param(const std::string &name, const Type &type) {
+    return *this;
+  }
+};
+
+class Op {
+public:
+  Type result(size_t index);
+  Region region();
+};
 class OpBuilder {
   OpBuilder(std::string operation) {}
 
@@ -46,42 +83,6 @@ public:
 
   friend class Module;
   friend class Block;
-};
-
-class Block {
-  Block(std::string name) {}
-
-public:
-  OpBuilder op(std::string operation) { return OpBuilder(operation); }
-  friend class BlockBuilder;
-};
-class BlockBuilder {
-  std::string name;
-
-public:
-  BlockBuilder(std::string name) : name(name) {}
-  Block build() { return Block(name); }
-  BlockBuilder &param(const std::string &name, const Type &type) {
-    return *this;
-  }
-};
-
-class Region {
-public:
-  BlockBuilder block(std::string name) { return BlockBuilder(name); }
-};
-
-class Op {
-public:
-  Type result(size_t index) { return Type(); }
-  Region region() { return Region(); }
-};
-
-class Module {
-public:
-  TypeBuilder type(std::string name) { return TypeBuilder(name); }
-  FunctionTypeBuilder functionType() { return FunctionTypeBuilder(); }
-  OpBuilder op(std::string operation) { return OpBuilder(operation); }
 };
 
 }; // namespace tmlir

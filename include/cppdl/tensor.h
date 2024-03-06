@@ -12,7 +12,6 @@
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
-namespace {
 inline void calculateStridesFromShape(const std::vector<size_t> &shape,
                                       std::vector<size_t> &strides) {
   strides.resize(shape.size());
@@ -22,6 +21,7 @@ inline void calculateStridesFromShape(const std::vector<size_t> &shape,
   }
 }
 
+namespace {
 template <typename T>
 T generateUniformRandom() {
   static std::random_device rd;

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "cppdl/nn.h"
+#include "cppdl/serialization.h"
 
 constexpr size_t imageSize = 784;
 
@@ -177,6 +178,26 @@ int main() {
           static_cast<float>(valCorrect) / rawValidationImages.size();
       fmt::println("Validation - Epoch: {}, Loss: {}, Accuracy: {}", epoch,
                    valLoss, valAccuracy);
+
+      std::ofstream file;
+      std::string filename =
+          fmt::format("mnist-{}-{:.2f}.cppdl", epoch, valAccuracy * 100);
+      file.open(filename, std::ios::binary);
+      if (!file.is_open()) {
+        fmt::println("Error opening file: {}", filename);
+        return -1;
+      }
+
+      writeFileHeader(file);
+
+      serializeTensor(layer0.weight, file);
+      serializeTensor(layer0.bias, file);
+      serializeTensor(layer1.weight, file);
+      serializeTensor(layer1.bias, file);
+      serializeTensor(layer2.weight, file);
+      serializeTensor(layer2.bias, file);
+
+      file.close();
     }
   }
 

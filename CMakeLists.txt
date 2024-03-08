@@ -13,8 +13,7 @@ set(gtest_force_shared_crt
     ON
     CACHE BOOL "" FORCE)
 
-macro(add_cppdl_executable NAME)
-  add_executable(${NAME} ${ARGN})
+macro(add_cppdl_target NAME)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(${NAME} PRIVATE -Wall -Wextra -Wpedantic
                                            -march=native)
@@ -27,7 +26,19 @@ macro(add_cppdl_executable NAME)
   target_link_libraries(${NAME} PRIVATE fmt::fmt)
 endmacro()
 
-add_subdirectory(src)
+macro(add_cppdl_library NAME)
+  add_library(${NAME} ${ARGN})
+  add_cppdl_target(${NAME})
+endmacro()
+
+macro(add_cppdl_executable NAME)
+  add_executable(${NAME} ${ARGN})
+  add_cppdl_target(${NAME})
+  target_link_libraries(${NAME} PRIVATE cppdl)
+endmacro()
+
+add_subdirectory(lib)
+add_subdirectory(examples)
 add_subdirectory(unittests)
 add_subdirectory(vendor/googletest)
 add_subdirectory(vendor/fmt)

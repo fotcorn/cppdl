@@ -13,6 +13,23 @@ set(gtest_force_shared_crt
     ON
     CACHE BOOL "" FORCE)
 
+option(CPPDL_IREE_PATH "Path to the IREE installation." "")
+if(CPPDL_IREE_PATH)
+  set(CPPDL_USE_IREE
+      ON
+      CACHE BOOL "Use IREE for compilation" FORCE)
+
+  get_filename_component(CPPDL_IREE_PATH_ABSOLUTE "${CPPDL_IREE_PATH}" ABSOLUTE)
+
+  set(CPPDL_IREE_COMPILER_LIB
+      "${CPPDL_IREE_PATH_ABSOLUTE}/lib/libIREECompiler.so"
+      CACHE FILEPATH "Path to the IREE Compiler library")
+
+  list(APPEND CMAKE_PREFIX_PATH "${CPPDL_IREE_PATH_ABSOLUTE}/lib/cmake/IREE")
+  find_package(Threads REQUIRED)
+  find_package(IREECompiler REQUIRED)
+endif()
+
 macro(add_cppdl_target NAME)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(${NAME} PRIVATE -Wall -Wextra -Wpedantic
@@ -23,6 +40,10 @@ macro(add_cppdl_target NAME)
   target_compile_features(${NAME} PUBLIC cxx_std_17)
   target_include_directories(${NAME}
                              PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+  if(CPPDL_USE_IREE)
+    target_compile_definitions(
+      ${NAME} PRIVATE CPPDL_IREE_COMPILER_LIB="${CPPDL_IREE_COMPILER_LIB}")
+  endif()
   target_link_libraries(${NAME} PRIVATE fmt::fmt)
 endmacro()
 

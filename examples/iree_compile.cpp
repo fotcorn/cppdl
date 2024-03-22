@@ -1,5 +1,7 @@
 // Adapted from https://github.com/iree-org/iree-template-compiler-cmake/ and
 // https://github.com/openxla/iree/blob/main/tools/iree-run-mlir-main.cc
+// https://iree.dev/reference/bindings/c-api/#usage_1
+// https://github.com/openxla/iree/tree/main/runtime/src/iree/runtime/demo
 //
 // Copyright 2023 The IREE Authors
 //
@@ -42,8 +44,10 @@ void cleanup_compiler_state(compiler_state_t s) {
     ireeCompilerSessionDestroy(s.session);
 }
 
-class IREECompiler {
-  IREECompiler() = default;
+namespace iree {
+
+class Compiler {
+  Compiler() = default;
 
   bool init() {
     bool result = ireeCompilerLoadLibrary(CPPDL_IREE_COMPILER_LIB);
@@ -70,10 +74,10 @@ class IREECompiler {
   }
 
 public:
-  ~IREECompiler() { ireeCompilerGlobalShutdown(); }
+  ~Compiler() { ireeCompilerGlobalShutdown(); }
 
-  static std::unique_ptr<IREECompiler> create() {
-    auto compiler = std::unique_ptr<IREECompiler>(new IREECompiler());
+  static std::unique_ptr<Compiler> create() {
+    auto compiler = std::unique_ptr<Compiler>(new Compiler());
     if (!compiler->init()) {
       return nullptr;
     }
@@ -81,34 +85,86 @@ public:
   }
 };
 
+class Error {
+  iree_compiler_error_t *error = nullptr;
+
+public:
+  Error() = default;
+  Error(iree_compiler_error_t *error) : error(error) {}
+  Error(const Error &) = delete;
+  Error &operator=(const Error &) = delete;
+  Error(Error &&) = default;
+  Error &operator=(Error &&) = default;
+
+  explicit operator bool() const { return error != nullptr; }
+  const char *getMessage() const { return ireeCompilerErrorGetMessage(error); }
+
+  ~Error() {
+    if (error) {
+      ireeCompilerErrorDestroy(error);
+    }
+  }
+};
+
+class CompilerSession {
+  iree_compiler_session_t *session;
+
+public:
+  CompilerSession() { session = ireeCompilerSessionCreate(); }
+  ~CompilerSession() { ireeCompilerSessionDestroy(session); }
+
+  /*std::unique_ptr<SourceWrapBuffer>
+  createSourceWrapBuffer(const std::string &source, const std::string &name,
+                         Error &error) {
+    return std::unique_ptr<SourceWrapBuffer>(
+        new SourceWrapBuffer(session, source, name, error));
+  }*/
+};
+
+// class SourceWrapBuffer {
+//   iree_compiler_source_t *compilerSource;
+//
+//   SourceWrapBuffer(iree_compiler_session_t *session, const std::string
+//   &source,
+//                    const std::string &name, Error &error) {
+//
+//     auto compileError = ireeCompilerSourceWrapBuffer(
+//         session, "simple_mul", source.c_str(), source.length() + 1,
+//         /*isNullTerminated=*/true, &compilerSource);
+//     // TODO Fail?
+//   }
+//
+//   friend class CompilerSession;
+// };
+
+} // namespace iree
+
 int main() {
-  auto compiler = IREECompiler::create();
+  auto compiler = iree::Compiler::create();
   if (!compiler) {
     return 1;
   }
 
-  // ------------------------------------------------------------------------ //
-  // Initialization and version checking complete, ready to use the compiler. //
-  // ------------------------------------------------------------------------ //
+  iree::CompilerSession session;
 
-  compiler_state_t s;
-  s.session = NULL;
-  s.source = NULL;
-  s.output = NULL;
-  s.inv = NULL;
-
-  iree_compiler_error_t *error = NULL;
-
-  // A session represents a scope where one or more invocations can be executed.
-  s.session = ireeCompilerSessionCreate();
-
-  // Create a compiler 'source' by wrapping a string buffer.
-  // A file could be opened instead with |ireeCompilerSourceOpenFile|.
   const char *simple_mul_mlir = " \
 func.func @simple_mul(%lhs: tensor<4xf32>, %rhs: tensor<4xf32>) -> tensor<4xf32> {\n\
   %result = arith.mulf %lhs, %rhs : tensor<4xf32>\n \
   return %result : tensor<4xf32>\n \
 }";
+
+  /*
+    iree::Error error;
+    auto sourceBuffer = session.createSourceWrapBuffer(source, error);
+    if (error) {
+      fmt::println(stderr, "Error wrapping source buffer: {}",
+                   error.getMessage());
+      return 1;
+    }*/
+  iree_compiler_error_t *error;
+
+  compiler_state_t s;
+
   error = ireeCompilerSourceWrapBuffer(s.session, "simple_mul", simple_mul_mlir,
                                        strlen(simple_mul_mlir) + 1,
                                        /*isNullTerminated=*/true, &s.source);

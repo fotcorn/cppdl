@@ -8,4 +8,12 @@ if(CPPDL_USE_IREE)
   add_cppdl_executable(iree_compile
                        ${CMAKE_CURRENT_SOURCE_DIR}/iree_compile.cpp)
   target_link_libraries(iree_compile PRIVATE iree_compiler_bindings_c_loader)
+
+  add_cppdl_executable(iree_run ${CMAKE_CURRENT_SOURCE_DIR}/iree_run.cpp)
+  target_link_libraries(
+    iree_run
+    PRIVATE iree_compiler_bindings_c_loader iree_runtime_runtime
+            iree_hal_drivers_local_sync_sync_driver
+            iree_hal_local_loaders_embedded_elf_loader)
+
 endif()

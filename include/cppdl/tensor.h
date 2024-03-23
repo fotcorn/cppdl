@@ -5,7 +5,6 @@
 #include <memory>
 #include <numeric>
 #include <random>
-#include <span>
 #include <sstream>
 #include <vector>
 

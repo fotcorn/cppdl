@@ -1,3 +1,7 @@
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  add_link_options("-fuse-ld=lld")
+endif()
+
 add_cppdl_executable(mnist ${CMAKE_CURRENT_SOURCE_DIR}/mnist.cpp)
 add_cppdl_executable(mnist_inference
                      ${CMAKE_CURRENT_SOURCE_DIR}/mnist_inference.cpp)
@@ -7,7 +11,10 @@ add_cppdl_executable(mnist_trace ${CMAKE_CURRENT_SOURCE_DIR}/mnist_trace.cpp)
 if(CPPDL_USE_IREE)
   add_cppdl_executable(iree_compile
                        ${CMAKE_CURRENT_SOURCE_DIR}/iree_compile.cpp)
-  target_link_libraries(iree_compile PRIVATE iree_compiler_bindings_c_loader)
+  target_link_libraries(iree_compile PRIVATE
+    iree_compiler_API_StaticImpl
+    StablehloOps
+  )
 
   add_cppdl_executable(iree_run ${CMAKE_CURRENT_SOURCE_DIR}/iree_run.cpp)
   target_link_libraries(

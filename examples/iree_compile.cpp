@@ -1,21 +1,28 @@
-// Adapted from https://github.com/iree-org/iree-template-compiler-cmake/ and
-// https://github.com/openxla/iree/blob/main/tools/iree-run-mlir-main.cc
-// https://iree.dev/reference/bindings/c-api/#usage_1
-// https://github.com/openxla/iree/tree/main/runtime/src/iree/runtime/demo
-//
 // Copyright 2023 The IREE Authors
 //
 // Licensed under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-#include <cinttypes>
-#include <optional>
+// IREE compiler C API sample application.
+//
+// This is meant to show a minimal way to use IREE's compiler C API by
+// running a compiler invocation on a sample program and printing the
+// intermediate output.
+//
+// While the API is written in C for maximum portability, some C++ concepts can
+// improve the ergonomics substantially - notably RAII types and string/list
+// handling classes.
+//
+// Demo usage:
+//   $ hello-compiler </path/to/libIREECompiler.so or IREECompiler.dll>
+
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <iree/compiler/embedding_api.h>
 #include <iree/compiler/loader.h>
-
-#include <fmt/core.h>
 
 #define IREE_COMPILER_EXPECTED_API_MAJOR 1 // At most this major version
 #define IREE_COMPILER_EXPECTED_API_MINOR 2 // At least this minor version
@@ -42,129 +49,61 @@ void cleanup_compiler_state(compiler_state_t s) {
     ireeCompilerSourceDestroy(s.source);
   if (s.session)
     ireeCompilerSessionDestroy(s.session);
+  ireeCompilerGlobalShutdown();
 }
 
-namespace iree {
-
-class Compiler {
-  Compiler() = default;
-
-  bool init() {
-    bool result = ireeCompilerLoadLibrary(CPPDL_IREE_COMPILER_LIB);
-    if (!result) {
-      fmt::println(stderr, "Failed to initialize IREE Compiler");
-      return false;
-    }
-    ireeCompilerGlobalInitialize();
-
-    uint32_t apiVersion = (uint32_t)ireeCompilerGetAPIVersion();
-    uint16_t apiVersionMajor = (uint16_t)((apiVersion >> 16) & 0xFFFFUL);
-    uint16_t apiVersionMinor = (uint16_t)(apiVersion & 0xFFFFUL);
-    if (apiVersionMajor > IREE_COMPILER_EXPECTED_API_MAJOR ||
-        apiVersionMinor < IREE_COMPILER_EXPECTED_API_MINOR) {
-      fmt::println(stderr,
-                   "Error: incompatible API version; built for version {}.{} "
-                   "but loaded version {}.{}",
-                   IREE_COMPILER_EXPECTED_API_MAJOR,
-                   IREE_COMPILER_EXPECTED_API_MINOR, apiVersionMajor,
-                   apiVersionMinor);
-      return false;
-    }
-    return true;
-  }
-
-public:
-  ~Compiler() { ireeCompilerGlobalShutdown(); }
-
-  static std::unique_ptr<Compiler> create() {
-    auto compiler = std::unique_ptr<Compiler>(new Compiler());
-    if (!compiler->init()) {
-      return nullptr;
-    }
-    return compiler;
-  }
-};
-
-class Error {
-  iree_compiler_error_t *error = nullptr;
-
-public:
-  Error() = default;
-  Error(iree_compiler_error_t *error) : error(error) {}
-  Error(const Error &) = delete;
-  Error &operator=(const Error &) = delete;
-  Error(Error &&) = default;
-  Error &operator=(Error &&) = default;
-
-  explicit operator bool() const { return error != nullptr; }
-  const char *getMessage() const { return ireeCompilerErrorGetMessage(error); }
-
-  ~Error() {
-    if (error) {
-      ireeCompilerErrorDestroy(error);
-    }
-  }
-};
-
-class CompilerSession {
-  iree_compiler_session_t *session;
-
-public:
-  CompilerSession() { session = ireeCompilerSessionCreate(); }
-  ~CompilerSession() { ireeCompilerSessionDestroy(session); }
-
-  /*std::unique_ptr<SourceWrapBuffer>
-  createSourceWrapBuffer(const std::string &source, const std::string &name,
-                         Error &error) {
-    return std::unique_ptr<SourceWrapBuffer>(
-        new SourceWrapBuffer(session, source, name, error));
-  }*/
-};
-
-// class SourceWrapBuffer {
-//   iree_compiler_source_t *compilerSource;
-//
-//   SourceWrapBuffer(iree_compiler_session_t *session, const std::string
-//   &source,
-//                    const std::string &name, Error &error) {
-//
-//     auto compileError = ireeCompilerSourceWrapBuffer(
-//         session, "simple_mul", source.c_str(), source.length() + 1,
-//         /*isNullTerminated=*/true, &compilerSource);
-//     // TODO Fail?
-//   }
-//
-//   friend class CompilerSession;
-// };
-
-} // namespace iree
-
 int main() {
-  auto compiler = iree::Compiler::create();
-  if (!compiler) {
+  // Note: this must be balanced with a call to ireeCompilerGlobalShutdown().
+  ireeCompilerGlobalInitialize();
+
+  // To set global options (see `iree-compile --help` for possibilities), use
+  // |ireeCompilerGetProcessCLArgs| and |ireeCompilerSetupGlobalCL| here.
+  // For an example of how to splice flags between a wrapping application and
+  // the IREE compiler, see the "ArgParser" class in iree-run-mlir-main.cc.
+
+  // Check the API version before proceeding any further.
+  uint32_t api_version = (uint32_t)ireeCompilerGetAPIVersion();
+  uint16_t api_version_major = (uint16_t)((api_version >> 16) & 0xFFFFUL);
+  uint16_t api_version_minor = (uint16_t)(api_version & 0xFFFFUL);
+  fprintf(stdout, "Compiler API version: %" PRIu16 ".%" PRIu16 "\n",
+          api_version_major, api_version_minor);
+  if (api_version_major > IREE_COMPILER_EXPECTED_API_MAJOR ||
+      api_version_minor < IREE_COMPILER_EXPECTED_API_MINOR) {
+    fprintf(stderr,
+            "Error: incompatible API version; built for version %" PRIu16
+            ".%" PRIu16 " but loaded version %" PRIu16 ".%" PRIu16 "\n",
+            IREE_COMPILER_EXPECTED_API_MAJOR, IREE_COMPILER_EXPECTED_API_MINOR,
+            api_version_major, api_version_minor);
+    ireeCompilerGlobalShutdown();
     return 1;
   }
 
-  iree::CompilerSession session;
+  // Check for a build tag with release version information.
+  const char *revision = ireeCompilerGetRevision();
+  fprintf(stdout, "Compiler revision: '%s'\n", revision);
 
+  // ------------------------------------------------------------------------ //
+  // Initialization and version checking complete, ready to use the compiler. //
+  // ------------------------------------------------------------------------ //
+
+  compiler_state_t s;
+  s.session = NULL;
+  s.source = NULL;
+  s.output = NULL;
+  s.inv = NULL;
+
+  iree_compiler_error_t *error = NULL;
+
+  // A session represents a scope where one or more invocations can be executed.
+  s.session = ireeCompilerSessionCreate();
+
+  // Create a compiler 'source' by wrapping a string buffer.
+  // A file could be opened instead with |ireeCompilerSourceOpenFile|.
   const char *simple_mul_mlir = " \
 func.func @simple_mul(%lhs: tensor<4xf32>, %rhs: tensor<4xf32>) -> tensor<4xf32> {\n\
   %result = arith.mulf %lhs, %rhs : tensor<4xf32>\n \
   return %result : tensor<4xf32>\n \
 }";
-
-  /*
-    iree::Error error;
-    auto sourceBuffer = session.createSourceWrapBuffer(source, error);
-    if (error) {
-      fmt::println(stderr, "Error wrapping source buffer: {}",
-                   error.getMessage());
-      return 1;
-    }*/
-  iree_compiler_error_t *error;
-
-  compiler_state_t s;
-
   error = ireeCompilerSourceWrapBuffer(s.session, "simple_mul", simple_mul_mlir,
                                        strlen(simple_mul_mlir) + 1,
                                        /*isNullTerminated=*/true, &s.source);

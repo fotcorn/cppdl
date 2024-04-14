@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
 enable_testing()
 
@@ -13,21 +13,26 @@ set(gtest_force_shared_crt
     ON
     CACHE BOOL "" FORCE)
 
-option(CPPDL_IREE_PATH "Path to the IREE installation." "")
-if(CPPDL_IREE_PATH)
-  set(CPPDL_USE_IREE
-      ON
-      CACHE BOOL "Use IREE for compilation" FORCE)
+option(CPPDL_USE_IREE "Use IREE for compilation." OFF)
+if(CPPDL_USE_IREE)
+  # Based on https://github.com/iree-org/iree-template-runtime-cmake/blob/main/CMakeLists.txt and
+  # https://github.com/iree-org/iree-template-compiler-cmake/blob/main/CMakeLists.txt
+  set(IREE_BUILD_COMPILER ON)
+  set(IREE_BUILD_TESTS OFF)
+  set(IREE_BUILD_SAMPLES OFF)
 
-  get_filename_component(CPPDL_IREE_PATH_ABSOLUTE "${CPPDL_IREE_PATH}" ABSOLUTE)
+  set(IREE_HAL_DRIVER_DEFAULTS OFF)
+  set(IREE_HAL_DRIVER_LOCAL_SYNC ON)
+  set(IREE_HAL_DRIVER_LOCAL_TASK ON)
+  set(IREE_HAL_DRIVER_VULKAN ON)
 
-  set(CPPDL_IREE_COMPILER_LIB
-      "${CPPDL_IREE_PATH_ABSOLUTE}/lib/libIREECompiler.so"
-      CACHE FILEPATH "Path to the IREE Compiler library")
+  set(IREE_HAL_EXECUTABLE_LOADER_DEFAULTS OFF)
+  set(IREE_HAL_EXECUTABLE_LOADER_EMBEDDED_ELF ON)
 
-  list(APPEND CMAKE_PREFIX_PATH "${CPPDL_IREE_PATH_ABSOLUTE}/lib/cmake/IREE")
-  find_package(Threads REQUIRED)
-  find_package(IREECompiler REQUIRED)
+  add_subdirectory(vendor/iree EXCLUDE_FROM_ALL SYSTEM)
+else()
+  # Use our own googletest if we don't use the one from IREE.
+  add_subdirectory(vendor/googletest)
 endif()
 
 macro(add_cppdl_target NAME)
@@ -40,10 +45,6 @@ macro(add_cppdl_target NAME)
   target_compile_features(${NAME} PUBLIC cxx_std_17)
   target_include_directories(${NAME}
                              PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-  if(CPPDL_USE_IREE)
-    target_compile_definitions(
-      ${NAME} PRIVATE CPPDL_IREE_COMPILER_LIB="${CPPDL_IREE_COMPILER_LIB}")
-  endif()
   target_link_libraries(${NAME} PRIVATE fmt::fmt)
 endmacro()
 
@@ -61,7 +62,6 @@ endmacro()
 add_subdirectory(lib)
 add_subdirectory(examples)
 add_subdirectory(unittests)
-add_subdirectory(vendor/googletest)
 add_subdirectory(vendor/fmt)
 
 get_filename_component(SRC_DIR_ABSOLUTE "${CMAKE_CURRENT_SOURCE_DIR}/src"

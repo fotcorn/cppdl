@@ -23,4 +23,12 @@ if(CPPDL_USE_IREE)
             iree_hal_drivers_local_sync_sync_driver
             iree_hal_local_loaders_embedded_elf_loader)
 
+  add_cppdl_executable(stablehlo
+            ${CMAKE_CURRENT_SOURCE_DIR}/stablehlo.cpp)
+  target_link_libraries(stablehlo PRIVATE
+    StablehloOps
+    MLIRIR
+    MLIRParser
+    MLIRSupport
+    MLIRTransforms)
 endif()

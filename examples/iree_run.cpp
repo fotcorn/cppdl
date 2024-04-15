@@ -20,13 +20,8 @@ iree_runtime_demo_perform_mul(iree_runtime_session_t *session);
 // This would live in your application startup/shutdown code or scoped to the
 // usage of IREE. Creating and destroying instances may be expensive and should
 // be avoided.
-int main(int argc, char **argv) {
-  if (argc < 2) {
-    fprintf(stderr, "usage: hello_world device module.vmfb\n");
-    return 1;
-  }
-  const char *device_uri = argv[1];
-  const char *module_path = argv[2];
+void runModule(void *content, size_t size) {
+  const char *device_uri = "local-sync";
 
   // Setup the shared runtime instance.
   // An application should usually only have one of these and share it across
@@ -87,8 +82,10 @@ int main(int argc, char **argv) {
   // binaries, fetch them over the network, etc. Modules are linked in the order
   // they are added and custom modules usually come before compiled modules.
   if (iree_status_is_ok(status)) {
-    status = iree_runtime_session_append_bytecode_module_from_file(session,
-                                                                   module_path);
+    status = iree_runtime_session_append_bytecode_module_from_memory(
+        session,
+        iree_make_const_byte_span(content, size),
+        iree_allocator_null());
   }
 
   // Build and issue the call - here just one we do for this sample but in a
@@ -117,7 +114,6 @@ int main(int argc, char **argv) {
     iree_status_fprint(stderr, status);
     iree_status_ignore(status);
   }
-  return ret;
 }
 
 //===----------------------------------------------------------------------===//
@@ -168,12 +164,12 @@ iree_runtime_demo_perform_mul(iree_runtime_session_t *session) {
           // Encoding type:
           IREE_HAL_ENCODING_TYPE_DENSE_ROW_MAJOR,
           (iree_hal_buffer_params_t){
-              // Where to allocate (host or device):
-              .type = IREE_HAL_MEMORY_TYPE_DEVICE_LOCAL,
-              // Access to allow to this memory:
-              .access = IREE_HAL_MEMORY_ACCESS_ALL,
               // Intended usage of the buffer (transfers, dispatches, etc):
               .usage = IREE_HAL_BUFFER_USAGE_DEFAULT,
+              // Access to allow to this memory:
+              .access = IREE_HAL_MEMORY_ACCESS_ALL,
+              // Where to allocate (host or device):
+              .type = IREE_HAL_MEMORY_TYPE_DEVICE_LOCAL,
           },
           // The actual heap buffer to wrap or clone and its allocator:
           iree_make_const_byte_span(lhs_data, sizeof(lhs_data)),
@@ -201,9 +197,9 @@ iree_runtime_demo_perform_mul(iree_runtime_session_t *session) {
           IREE_HAL_ELEMENT_TYPE_FLOAT_32,
           IREE_HAL_ENCODING_TYPE_DENSE_ROW_MAJOR,
           (iree_hal_buffer_params_t){
-              .type = IREE_HAL_MEMORY_TYPE_DEVICE_LOCAL,
-              .access = IREE_HAL_MEMORY_ACCESS_ALL,
               .usage = IREE_HAL_BUFFER_USAGE_DEFAULT,
+              .access = IREE_HAL_MEMORY_ACCESS_ALL,
+              .type = IREE_HAL_MEMORY_TYPE_DEVICE_LOCAL,
           },
           iree_make_const_byte_span(rhs_data, sizeof(rhs_data)), &rhs);
     }

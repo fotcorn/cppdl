@@ -11,10 +11,13 @@
 
 #include <cinttypes>
 #include <optional>
+#include <vector>
 
 #include <iree/compiler/embedding_api.h>
 
 #include <fmt/core.h>
+
+#include "iree_run.cpp"
 
 #define IREE_COMPILER_EXPECTED_API_MAJOR 1 // At most this major version
 #define IREE_COMPILER_EXPECTED_API_MINOR 2 // At least this minor version
@@ -107,23 +110,36 @@ class CompilerInvocation {
     invocation = ireeCompilerInvocationCreate(session);
     ireeCompilerInvocationEnableConsoleDiagnostics(invocation);
   }
-public:
-  void setCompileToPhase(const std::string &phase) {
-    ireeCompilerInvocationSetCompileToPhase(invocation, phase.c_str());
-  }
 
-  [[nodiscard]] bool parseSource(SourceWrapBuffer* source) {
-    return ireeCompilerInvocationParseSource(invocation, source->compilerSource);
+public:
+  [[nodiscard]] bool parseSource(SourceWrapBuffer *source) {
+    return ireeCompilerInvocationParseSource(invocation,
+                                             source->compilerSource);
   }
 
   [[nodiscard]] bool compile() {
-    return ireeCompilerInvocationPipeline(invocation, IREE_COMPILER_PIPELINE_STD);
+    return ireeCompilerInvocationPipeline(invocation,
+                                          IREE_COMPILER_PIPELINE_STD);
   }
 
   void outputIR() {
     iree_compiler_output_t *output;
     ireeCompilerOutputOpenFD(fileno(stdout), &output);
     ireeCompilerInvocationOutputIR(invocation, output);
+    ireeCompilerOutputDestroy(output);
+  }
+
+  void run() {
+    iree_compiler_output_t *output;
+    ireeCompilerOutputOpenMembuffer(&output);
+    ireeCompilerInvocationOutputVMBytecode(invocation, output);
+
+    void *content;
+    size_t size;
+    ireeCompilerOutputMapMemory(output, &content, &size);
+
+    runModule(content, size);
+
     ireeCompilerOutputDestroy(output);
   }
 
@@ -136,7 +152,25 @@ class CompilerSession {
   iree_compiler_session_t *session;
 
 public:
-  CompilerSession() { session = ireeCompilerSessionCreate(); }
+  CompilerSession() {
+    session = ireeCompilerSessionCreate();
+
+    std::vector<const char *> flags = {
+        //"--iree-hal-device-target=llvm-cpu",
+        "--iree-hal-target-backends=llvm-cpu",
+        //"--iree-hal-executable-target=embedded-elf-x86_64",
+    };
+
+    ireeCompilerSetupGlobalCL(flags.size(), flags.data(), "iree_compile",
+                              false);
+
+    auto error =
+        ireeCompilerSessionSetFlags(session, flags.size(), flags.data());
+    if (error) {
+      fmt::println(stderr, "Error setting flags: {}",
+                   ireeCompilerErrorGetMessage(error));
+    }
+  }
   ~CompilerSession() { ireeCompilerSessionDestroy(session); }
 
   std::unique_ptr<SourceWrapBuffer>
@@ -155,7 +189,6 @@ public:
     return std::unique_ptr<CompilerInvocation>(new CompilerInvocation(session));
   }
 };
-
 
 } // namespace iree
 
@@ -182,12 +215,6 @@ func.func @simple_mul(%lhs: tensor<4xf32>, %rhs: tensor<4xf32>) -> tensor<4xf32>
 
   auto invocation = session.createCompilerInvocation();
 
-  // Compile up to the 'flow' dialect phase.
-  // Typically a compiler tool would compile to 'end' and either output to a
-  // .vmfb file for later usage in a deployed application or output to memory
-  // for immediate usage in a JIT scenario.
-  invocation->setCompileToPhase("flow");
-
   if (!invocation->parseSource(sourceWrapBuffer.get())) {
     fmt::println(stderr, "Error parsing source.");
     return 1;
@@ -198,7 +225,9 @@ func.func @simple_mul(%lhs: tensor<4xf32>, %rhs: tensor<4xf32>) -> tensor<4xf32>
     return 1;
   }
 
-  invocation->outputIR();
+  invocation->run();
+
+  //invocation->outputIR();
 
   return 0;
 }

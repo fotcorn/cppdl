@@ -42,6 +42,7 @@ enum class NodeKind {
   Transpose,
   Reshape,
   Sum,
+  Softmax,
 };
 
 class Node {
@@ -128,13 +129,16 @@ public:
 };
 
 class TensorNode : public UnaryNode {
+  std::string name;
+
 public:
-  TensorNode(std::vector<std::size_t> shape)
-      : UnaryNode(NodeKind::Tensor, shape, std::numeric_limits<NodeId>::max()) {
-  }
+  TensorNode(std::string name, std::vector<std::size_t> shape)
+      : UnaryNode(NodeKind::Tensor, shape, std::numeric_limits<NodeId>::max()),
+        name(std::move(name)) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Tensor;
   }
+  std::string getName() const { return name; }
 };
 
 class ReLUNode : public UnaryNode {
@@ -170,6 +174,17 @@ public:
       : UnaryNode(NodeKind::Sum, shape, input), dim(dim) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Sum;
+  }
+  std::size_t getDim() const { return dim; }
+};
+class SoftmaxNode : public UnaryNode {
+  std::size_t dim;
+
+public:
+  SoftmaxNode(NodeId input, std::size_t dim, std::vector<std::size_t> shape)
+      : UnaryNode(NodeKind::Softmax, shape, input), dim(dim) {}
+  static bool classof(const Node *node) {
+    return node->getKind() == NodeKind::Softmax;
   }
   std::size_t getDim() const { return dim; }
 };
@@ -211,8 +226,15 @@ void printNode(NodeId nodeId) {
   }
   case NodeKind::Tensor: {
     TensorNode *tensorNode = cast<TensorNode>(node);
-    fmt::println("{} [label=\"Input {}\", shape=box];", nodeId,
-                 tensorNode->getShape());
+    fmt::println("{} [label=\"{} {}\", shape=box];", nodeId,
+                 tensorNode->getName(), tensorNode->getShape());
+    break;
+  }
+  case NodeKind::Softmax: {
+    SoftmaxNode *softmaxNode = cast<SoftmaxNode>(node);
+    fmt::println("{} [label=\"Softmax {}\"];", nodeId, softmaxNode->getShape());
+    fmt::println("{} -> {};", softmaxNode->getInput(), nodeId);
+    printNode(softmaxNode->getInput());
     break;
   }
   default:

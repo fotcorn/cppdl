@@ -6,10 +6,13 @@
 int main() {
   Graph g(1024);
 
-  NodeId input = g.addNode<TensorNode>(std::vector<std::size_t>({30, 784}));
+  NodeId input =
+      g.addNode<TensorNode>("input", std::vector<std::size_t>({30, 784}));
 
-  NodeId weightsL0 = g.addNode<TensorNode>(std::vector<std::size_t>({784, 16}));
-  NodeId biasL0 = g.addNode<TensorNode>(std::vector<std::size_t>({16}));
+  NodeId weightsL0 =
+      g.addNode<TensorNode>("weightsL0", std::vector<std::size_t>({784, 16}));
+  NodeId biasL0 =
+      g.addNode<TensorNode>("biasL0", std::vector<std::size_t>({16}));
 
   NodeId r0 = g.addNode<MatMulNode>(input, weightsL0,
                                     std::vector<std::size_t>({30, 16}));

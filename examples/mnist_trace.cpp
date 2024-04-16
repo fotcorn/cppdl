@@ -1,42 +1,35 @@
-#include "cppdl/nn.h"
+#include "cppdl/trace.h"
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
-int main(int argc, char *argv[]) {
+int main() {
+  NeuralNetwork nn;
+
+  auto w0 = nn.paramTensor("layer0.weight", {784, 16});
+  auto b0 = nn.paramTensor("layer0.bias", {16});
+  auto w1 = nn.paramTensor("layer1.weight", {16, 16});
+  auto b1 = nn.paramTensor("layer1.bias", {16});
+  auto w2 = nn.paramTensor("layer2.weight", {16, 10});
+  auto b2 = nn.paramTensor("layer2.bias", {10});
 
   // Define the model architecture
-  LinearLayer layer0(784, 16);
-  ReLU layer0Activation;
-  LinearLayer layer1(16, 16);
-  ReLU layer1Activation;
-  LinearLayer layer2(16, 10);
+  LinearLayer layer0(w0, b0);
+  LinearLayer layer1(w1, b1);
+  LinearLayer layer2(w2, b2);
 
-  Graph graph;
-  TraceContext ctx(graph);
-
-  // Load weights
-  layer0.weight = ctx.weightTensor({16, 784});
-  layer0.bias = ctx.weightTensor({16});
-  layer1.weight = ctx.weightTensor({16, 16});
-  layer1.bias = ctx.weightTensor({16});
-  layer2.weight = ctx.weightTensor({16, 10});
-  layer2.bias = ctx.weightTensor({10});
-
-  auto validationImages = ctx.inputTensor({25, 784});
+  auto validationImages = nn.inputTensor("image", {25, 784});
 
   // Inference
   auto z0 = layer0.forward(validationImages);
-  auto a0 = layer0Activation.forward(z0);
+  auto a0 = z0.relu();
   auto z1 = layer1.forward(a0);
-  auto a1 = layer1Activation.forward(z1);
+  auto a1 = z1.relu();
   auto z2 = layer2.forward(a1);
   auto result = z2.softmax(1);
 
-  ctx.output(result);
-
-  graph.plot();
+  printGraph(result.nodeId);
 
   return 0;
 }

@@ -1,1 +1,1 @@
-add_cppdl_library(cppdl tinymlir.cpp mnist_utils.cpp)
+add_cppdl_library(cppdl mnist_utils.cpp)

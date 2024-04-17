@@ -12,5 +12,5 @@ int main() {
   auto h1 = x.matmul(w1).add(b1).relu();
   auto y = h1.matmul(w2).add(b2).relu();
 
-  printGraph(y.nodeId);
+  printGraphBackwards(nn.getGraph(), y.nodeId);
 }

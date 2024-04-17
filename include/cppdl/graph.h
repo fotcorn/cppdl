@@ -24,11 +24,13 @@ public:
   NodeId addNode(Args &&...args) {
     static_assert(std::is_base_of<Node, GraphNodeType>::value,
                   "GraphNodeType must be a derivative of Node");
-    new (nextMemory) GraphNodeType(std::forward<Args>(args)...);
+    new (nextMemory) GraphNodeType(*this, std::forward<Args>(args)...);
     NodeId id = reinterpret_cast<NodeId>(nextMemory);
     nextMemory += sizeof(GraphNodeType);
     return id;
   }
+
+  Node *getNode(NodeId id) const { return reinterpret_cast<Node *>(id); }
 };
 
 enum class NodeKind {
@@ -48,6 +50,7 @@ enum class NodeKind {
 class Node {
   NodeKind nodeKind;
   std::vector<std::size_t> shape;
+  std::vector<NodeId> successors;
 
 protected:
   Node(NodeKind type, std::vector<std::size_t> shape)
@@ -56,6 +59,8 @@ protected:
 public:
   NodeKind getKind() const { return nodeKind; }
   std::vector<std::size_t> getShape() const { return shape; }
+  void addSuccessor(NodeId successor) { successors.push_back(successor); }
+  const std::vector<NodeId> &getSuccessors() const { return successors; }
 };
 
 class BinaryNode : public Node {
@@ -67,9 +72,12 @@ public:
   NodeId getInputB() const { return inputB; }
 
 protected:
-  BinaryNode(NodeKind type, std::vector<std::size_t> shape, NodeId inputA,
-             NodeId inputB)
-      : Node(type, shape), inputA(inputA), inputB(inputB) {}
+  BinaryNode(Graph &graph, NodeKind type, std::vector<std::size_t> shape,
+             NodeId inputA, NodeId inputB)
+      : Node(type, shape), inputA(inputA), inputB(inputB) {
+    graph.getNode(inputA)->addSuccessor(reinterpret_cast<NodeId>(this));
+    graph.getNode(inputB)->addSuccessor(reinterpret_cast<NodeId>(this));
+  }
 };
 
 class UnaryNode : public Node {
@@ -79,14 +87,18 @@ public:
   NodeId getInput() const { return input; }
 
 protected:
-  UnaryNode(NodeKind type, std::vector<std::size_t> shape, NodeId input)
-      : Node(type, shape), input(input) {}
+  UnaryNode(Graph &graph, NodeKind type, std::vector<std::size_t> shape,
+            NodeId input)
+      : Node(type, shape), input(input) {
+    graph.getNode(input)->addSuccessor(reinterpret_cast<NodeId>(this));
+  }
 };
 
 class AddNode : public BinaryNode {
 public:
-  AddNode(NodeId inputA, NodeId inputB, std::vector<std::size_t> shape)
-      : BinaryNode(NodeKind::Add, shape, inputA, inputB) {}
+  AddNode(Graph &graph, NodeId inputA, NodeId inputB,
+          std::vector<std::size_t> shape)
+      : BinaryNode(graph, NodeKind::Add, shape, inputA, inputB) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Add;
   }
@@ -94,8 +106,9 @@ public:
 
 class SubNode : public BinaryNode {
 public:
-  SubNode(NodeId inputA, NodeId inputB, std::vector<std::size_t> shape)
-      : BinaryNode(NodeKind::Sub, shape, inputA, inputB) {}
+  SubNode(Graph &graph, NodeId inputA, NodeId inputB,
+          std::vector<std::size_t> shape)
+      : BinaryNode(graph, NodeKind::Sub, shape, inputA, inputB) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Sub;
   }
@@ -103,8 +116,9 @@ public:
 
 class MulNode : public BinaryNode {
 public:
-  MulNode(NodeId inputA, NodeId inputB, std::vector<std::size_t> shape)
-      : BinaryNode(NodeKind::Mul, shape, inputA, inputB) {}
+  MulNode(Graph &graph, NodeId inputA, NodeId inputB,
+          std::vector<std::size_t> shape)
+      : BinaryNode(graph, NodeKind::Mul, shape, inputA, inputB) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Mul;
   }
@@ -112,8 +126,9 @@ public:
 
 class DivNode : public BinaryNode {
 public:
-  DivNode(NodeId inputA, NodeId inputB, std::vector<std::size_t> shape)
-      : BinaryNode(NodeKind::Div, shape, inputA, inputB) {}
+  DivNode(Graph &graph, NodeId inputA, NodeId inputB,
+          std::vector<std::size_t> shape)
+      : BinaryNode(graph, NodeKind::Div, shape, inputA, inputB) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Div;
   }
@@ -121,20 +136,20 @@ public:
 
 class MatMulNode : public BinaryNode {
 public:
-  MatMulNode(NodeId inputA, NodeId inputB, std::vector<std::size_t> shape)
-      : BinaryNode(NodeKind::MatMul, shape, inputA, inputB) {}
+  MatMulNode(Graph &graph, NodeId inputA, NodeId inputB,
+             std::vector<std::size_t> shape)
+      : BinaryNode(graph, NodeKind::MatMul, shape, inputA, inputB) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::MatMul;
   }
 };
 
-class TensorNode : public UnaryNode {
+class TensorNode : public Node {
   std::string name;
 
 public:
-  TensorNode(std::string name, std::vector<std::size_t> shape)
-      : UnaryNode(NodeKind::Tensor, shape, std::numeric_limits<NodeId>::max()),
-        name(std::move(name)) {}
+  TensorNode(Graph &, std::string name, std::vector<std::size_t> shape)
+      : Node(NodeKind::Tensor, shape), name(name) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Tensor;
   }
@@ -143,16 +158,16 @@ public:
 
 class ReLUNode : public UnaryNode {
 public:
-  ReLUNode(NodeId input, std::vector<std::size_t> shape)
-      : UnaryNode(NodeKind::ReLU, shape, input) {}
+  ReLUNode(Graph &graph, NodeId input, std::vector<std::size_t> shape)
+      : UnaryNode(graph, NodeKind::ReLU, shape, input) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::ReLU;
   }
 };
 class TransposeNode : public UnaryNode {
 public:
-  TransposeNode(NodeId input, std::vector<std::size_t> shape)
-      : UnaryNode(NodeKind::Transpose, shape, input) {}
+  TransposeNode(Graph &graph, NodeId input, std::vector<std::size_t> shape)
+      : UnaryNode(graph, NodeKind::Transpose, shape, input) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Transpose;
   }
@@ -160,8 +175,8 @@ public:
 class ReshapeNode : public UnaryNode {
 
 public:
-  ReshapeNode(NodeId input, std::vector<std::size_t> shape)
-      : UnaryNode(NodeKind::Reshape, shape, input) {}
+  ReshapeNode(Graph &graph, NodeId input, std::vector<std::size_t> shape)
+      : UnaryNode(graph, NodeKind::Reshape, shape, input) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Reshape;
   }
@@ -170,8 +185,9 @@ class SumNode : public UnaryNode {
   std::size_t dim;
 
 public:
-  SumNode(NodeId input, std::size_t dim, std::vector<std::size_t> shape)
-      : UnaryNode(NodeKind::Sum, shape, input), dim(dim) {}
+  SumNode(Graph &graph, NodeId input, std::size_t dim,
+          std::vector<std::size_t> shape)
+      : UnaryNode(graph, NodeKind::Sum, shape, input), dim(dim) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Sum;
   }
@@ -181,8 +197,9 @@ class SoftmaxNode : public UnaryNode {
   std::size_t dim;
 
 public:
-  SoftmaxNode(NodeId input, std::size_t dim, std::vector<std::size_t> shape)
-      : UnaryNode(NodeKind::Softmax, shape, input), dim(dim) {}
+  SoftmaxNode(Graph &graph, NodeId input, std::size_t dim,
+              std::vector<std::size_t> shape)
+      : UnaryNode(graph, NodeKind::Softmax, shape, input), dim(dim) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Softmax;
   }
@@ -195,8 +212,8 @@ ToType *cast(FromType *object) {
   return reinterpret_cast<ToType *>(object);
 }
 
-void printNode(NodeId nodeId) {
-  Node *node = reinterpret_cast<Node *>(nodeId);
+void printNodeBackwards(const Graph &graph, NodeId nodeId) {
+  Node *node = graph.getNode(nodeId);
 
   switch (node->getKind()) {
   case NodeKind::Add: {
@@ -204,8 +221,8 @@ void printNode(NodeId nodeId) {
     fmt::println("{} [label=\"Add {}\"];", nodeId, addNode->getShape());
     fmt::println("{} -> {};", addNode->getInputA(), nodeId);
     fmt::println("{} -> {};", addNode->getInputB(), nodeId);
-    printNode(addNode->getInputA());
-    printNode(addNode->getInputB());
+    printNodeBackwards(graph, addNode->getInputA());
+    printNodeBackwards(graph, addNode->getInputB());
     break;
   }
   case NodeKind::MatMul: {
@@ -213,15 +230,15 @@ void printNode(NodeId nodeId) {
     fmt::println("{} [label=\"MatMul {}\"];", nodeId, matMulNode->getShape());
     fmt::println("{} -> {};", matMulNode->getInputA(), nodeId);
     fmt::println("{} -> {};", matMulNode->getInputB(), nodeId);
-    printNode(matMulNode->getInputA());
-    printNode(matMulNode->getInputB());
+    printNodeBackwards(graph, matMulNode->getInputA());
+    printNodeBackwards(graph, matMulNode->getInputB());
     break;
   }
   case NodeKind::ReLU: {
     ReLUNode *reluNode = cast<ReLUNode>(node);
     fmt::println("{} [label=\"ReLU {}\"];", nodeId, reluNode->getShape());
     fmt::println("{} -> {};", reluNode->getInput(), nodeId);
-    printNode(reluNode->getInput());
+    printNodeBackwards(graph, reluNode->getInput());
     break;
   }
   case NodeKind::Tensor: {
@@ -234,7 +251,7 @@ void printNode(NodeId nodeId) {
     SoftmaxNode *softmaxNode = cast<SoftmaxNode>(node);
     fmt::println("{} [label=\"Softmax {}\"];", nodeId, softmaxNode->getShape());
     fmt::println("{} -> {};", softmaxNode->getInput(), nodeId);
-    printNode(softmaxNode->getInput());
+    printNodeBackwards(graph, softmaxNode->getInput());
     break;
   }
   default:
@@ -243,8 +260,8 @@ void printNode(NodeId nodeId) {
   }
 }
 
-void printGraph(NodeId outputNodeId) {
+void printGraphBackwards(const Graph &graph, NodeId outputNodeId) {
   fmt::println("digraph {{");
-  printNode(outputNodeId);
+  printNodeBackwards(graph, outputNodeId);
   fmt::println("}}");
 }

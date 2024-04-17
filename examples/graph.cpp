@@ -20,5 +20,5 @@ int main() {
       g.addNode<AddNode>(r0, biasL0, std::vector<std::size_t>({30, 16}));
   NodeId output = g.addNode<ReLUNode>(r1, std::vector<std::size_t>({30, 16}));
 
-  printGraph(output);
+  printGraphBackwards(g, output);
 }

@@ -29,7 +29,7 @@ int main() {
   auto z2 = layer2.forward(a1);
   auto result = z2.softmax(1);
 
-  printGraph(result.nodeId);
+  printGraphBackwards(nn.getGraph(), result.nodeId);
 
   return 0;
 }

@@ -107,6 +107,8 @@ public:
     inputTensors.push_back(id);
     return TraceTensor(shape, graph, id);
   }
+
+  const Graph &getGraph() { return graph; }
 };
 
 class LinearLayer {

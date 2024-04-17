@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <functional>
 #include <iostream>
 #include <vector>
 
@@ -109,6 +111,32 @@ public:
   }
 
   const Graph &getGraph() { return graph; }
+
+  std::vector<NodeId> topologicalSort() {
+    // TODO: cycle detection.
+    std::vector<NodeId> list;
+
+    std::function<void(NodeId)> topoVisit = [&](NodeId nodeId) {
+      if (std::find(list.begin(), list.end(), nodeId) != list.end()) {
+        return;
+      }
+      Node *node = graph.getNode(nodeId);
+      for (NodeId successor : node->getSuccessors()) {
+        topoVisit(successor);
+      }
+      list.push_back(nodeId);
+    };
+
+    for (auto nodeId : inputTensors) {
+      topoVisit(nodeId);
+    }
+    for (auto nodeId : paramTensors) {
+      topoVisit(nodeId);
+    }
+
+    std::reverse(list.begin(), list.end());
+    return list;
+  }
 };
 
 class LinearLayer {

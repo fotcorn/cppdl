@@ -54,7 +54,12 @@ int main() {
     llvm::errs() << "module verification failed\n";
   }
 
-  module.dump();
+  std::string moduleStr;
+  llvm::raw_string_ostream os(moduleStr);
+  module.print(os);
+  os.flush();
+
+  llvm::outs() << moduleStr;
 
   return 0;
 }

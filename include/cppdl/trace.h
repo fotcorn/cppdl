@@ -89,7 +89,7 @@ public:
 
 class NeuralNetwork {
   std::vector<NodeId> paramTensors;
-  std::vector<NodeId> inputTensors;
+  NodeId inputTensor = 0;
 
   Graph graph;
 
@@ -104,9 +104,9 @@ public:
     return TraceTensor(shape, graph, id);
   }
 
-  TraceTensor inputTensor(std::string name, std::vector<std::size_t> shape) {
+  TraceTensor setInputTensor(std::string name, std::vector<std::size_t> shape) {
     auto id = graph.addNode<TensorNode>(name, std::vector<std::size_t>(shape));
-    inputTensors.push_back(id);
+    inputTensor = id;
     return TraceTensor(shape, graph, id);
   }
 
@@ -127,9 +127,7 @@ public:
       list.push_back(nodeId);
     };
 
-    for (auto nodeId : inputTensors) {
-      topoVisit(nodeId);
-    }
+    topoVisit(inputTensor);
     for (auto nodeId : paramTensors) {
       topoVisit(nodeId);
     }

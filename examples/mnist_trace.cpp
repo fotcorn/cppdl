@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 int main() {
   NeuralNetwork nn;
@@ -19,7 +20,7 @@ int main() {
   LinearLayer layer1(w1, b1);
   LinearLayer layer2(w2, b2);
 
-  auto validationImages = nn.inputTensor("image", {25, 784});
+  auto validationImages = nn.setInputTensor("image", {25, 784});
 
   // Inference
   auto z0 = layer0.forward(validationImages);

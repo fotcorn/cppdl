@@ -17,12 +17,12 @@
 
 #include <fmt/core.h>
 
-#include "iree_run.cpp"
-
 #define IREE_COMPILER_EXPECTED_API_MAJOR 1 // At most this major version
 #define IREE_COMPILER_EXPECTED_API_MINOR 2 // At least this minor version
 
 namespace iree {
+
+void runModule(void *content, size_t size);
 
 class Compiler {
   Compiler() = default;
@@ -156,9 +156,7 @@ public:
     session = ireeCompilerSessionCreate();
 
     std::vector<const char *> flags = {
-        //"--iree-hal-device-target=llvm-cpu",
         "--iree-hal-target-backends=llvm-cpu",
-        //"--iree-hal-executable-target=embedded-elf-x86_64",
     };
 
     ireeCompilerSetupGlobalCL(flags.size(), flags.data(), "iree_compile",
@@ -191,43 +189,3 @@ public:
 };
 
 } // namespace iree
-
-int main() {
-  auto compiler = iree::Compiler::create();
-  if (!compiler) {
-    return 1;
-  }
-
-  iree::CompilerSession session;
-
-  std::string simple_mul_mlir = " \
-func.func @simple_mul(%lhs: tensor<4xf32>, %rhs: tensor<4xf32>) -> tensor<4xf32> {\n\
-  %result = arith.mulf %lhs, %rhs : tensor<4xf32>\n \
-  return %result : tensor<4xf32>\n \
-}";
-
-  auto sourceWrapBuffer =
-      session.createSourceWrapBuffer(simple_mul_mlir, "simple_mul");
-
-  if (!sourceWrapBuffer) {
-    return 1;
-  }
-
-  auto invocation = session.createCompilerInvocation();
-
-  if (!invocation->parseSource(sourceWrapBuffer.get())) {
-    fmt::println(stderr, "Error parsing source.");
-    return 1;
-  }
-
-  if (!invocation->compile()) {
-    fmt::println(stderr, "Error compiling source.");
-    return 1;
-  }
-
-  invocation->run();
-
-  //invocation->outputIR();
-
-  return 0;
-}

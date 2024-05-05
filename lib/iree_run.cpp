@@ -9,6 +9,8 @@
 // When using the iree_runtime_* APIs this is the only include required:
 #include <iree/runtime/api.h>
 
+namespace iree {
+
 static iree_status_t
 iree_runtime_demo_perform_mul(iree_runtime_session_t *session);
 
@@ -83,8 +85,7 @@ void runModule(void *content, size_t size) {
   // they are added and custom modules usually come before compiled modules.
   if (iree_status_is_ok(status)) {
     status = iree_runtime_session_append_bytecode_module_from_memory(
-        session,
-        iree_make_const_byte_span(content, size),
+        session, iree_make_const_byte_span(content, size),
         iree_allocator_null());
   }
 
@@ -235,3 +236,4 @@ iree_runtime_demo_perform_mul(iree_runtime_session_t *session) {
   iree_runtime_call_deinitialize(&call);
   return status;
 }
+}; // namespace iree

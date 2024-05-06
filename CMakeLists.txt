@@ -15,7 +15,9 @@ set(gtest_force_shared_crt
 
 option(CPPDL_USE_IREE "Use IREE for compilation." OFF)
 if(CPPDL_USE_IREE)
-  # Based on https://github.com/iree-org/iree-template-runtime-cmake/blob/main/CMakeLists.txt and
+  # Based on
+  # https://github.com/iree-org/iree-template-runtime-cmake/blob/main/CMakeLists.txt
+  # and
   # https://github.com/iree-org/iree-template-compiler-cmake/blob/main/CMakeLists.txt
   set(IREE_BUILD_COMPILER ON)
   set(IREE_BUILD_TESTS OFF)
@@ -26,8 +28,18 @@ if(CPPDL_USE_IREE)
   set(IREE_HAL_DRIVER_LOCAL_TASK ON)
   set(IREE_HAL_DRIVER_VULKAN ON)
 
+  set(IREE_TARGET_BACKEND_DEFAULTS OFF)
+  set(IREE_TARGET_BACKEND_LLVM_CPU ON)
+  set(IREE_TARGET_BACKEND_VULKAN_SPIRV ON)
+
+  set(IREE_DEFAULT_CPU_LLVM_TARGETS "host")
+
   set(IREE_HAL_EXECUTABLE_LOADER_DEFAULTS OFF)
   set(IREE_HAL_EXECUTABLE_LOADER_EMBEDDED_ELF ON)
+
+  set(IREE_INPUT_STABLEHLO ON)
+  set(IREE_INPUT_TORCH OFF)
+  set(IREE_INPUT_TOSA OFF)
 
   add_subdirectory(vendor/iree EXCLUDE_FROM_ALL SYSTEM)
 else()

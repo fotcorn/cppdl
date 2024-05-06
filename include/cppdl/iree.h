@@ -22,170 +22,70 @@
 
 namespace iree {
 
-void runModule(void *content, size_t size);
-
 class Compiler {
-  Compiler() = default;
-
-  bool init() {
-    ireeCompilerGlobalInitialize();
-
-    uint32_t apiVersion = (uint32_t)ireeCompilerGetAPIVersion();
-    uint16_t apiVersionMajor = (uint16_t)((apiVersion >> 16) & 0xFFFFUL);
-    uint16_t apiVersionMinor = (uint16_t)(apiVersion & 0xFFFFUL);
-    if (apiVersionMajor > IREE_COMPILER_EXPECTED_API_MAJOR ||
-        apiVersionMinor < IREE_COMPILER_EXPECTED_API_MINOR) {
-      fmt::println(stderr,
-                   "Error: incompatible API version; built for version {}.{} "
-                   "but loaded version {}.{}",
-                   IREE_COMPILER_EXPECTED_API_MAJOR,
-                   IREE_COMPILER_EXPECTED_API_MINOR, apiVersionMajor,
-                   apiVersionMinor);
-      return false;
-    }
-    return true;
-  }
-
 public:
-  ~Compiler() { ireeCompilerGlobalShutdown(); }
+  ~Compiler();
+  static std::unique_ptr<Compiler> create();
 
-  static std::unique_ptr<Compiler> create() {
-    auto compiler = std::unique_ptr<Compiler>(new Compiler());
-    if (!compiler->init()) {
-      return nullptr;
-    }
-    return compiler;
-  }
+private:
+  Compiler();
+  bool init();
 };
 
 class Error {
-  iree_compiler_error_t *error = nullptr;
-
 public:
-  Error() = default;
-  Error(iree_compiler_error_t *error) : error(error) {}
+  Error();
+  Error(iree_compiler_error_t *error);
+  ~Error();
+  explicit operator bool() const;
+  const char *getMessage() const;
+
   Error(const Error &) = delete;
   Error &operator=(const Error &) = delete;
   Error(Error &&) = default;
   Error &operator=(Error &&) = default;
 
-  explicit operator bool() const { return error != nullptr; }
-  const char *getMessage() const { return ireeCompilerErrorGetMessage(error); }
-
-  ~Error() {
-    if (error) {
-      ireeCompilerErrorDestroy(error);
-    }
-  }
+private:
+  iree_compiler_error_t *error = nullptr;
 };
 
 class SourceWrapBuffer {
+public:
+  ~SourceWrapBuffer();
+  friend class CompilerSession;
+  friend class CompilerInvocation;
+
+private:
   iree_compiler_source_t *compilerSource = nullptr;
   std::unique_ptr<Error> init(iree_compiler_session_t *session,
                               const std::string &source,
-                              const std::string &name) {
-    auto error = ireeCompilerSourceWrapBuffer(
-        session, name.c_str(), source.c_str(), source.length() + 1,
-        /*isNullTerminated=*/true, &compilerSource);
-    if (error) {
-      return std::make_unique<Error>(error);
-    }
-    return nullptr;
-  }
-
-public:
-  ~SourceWrapBuffer() {
-    if (compilerSource) {
-      ireeCompilerSourceDestroy(compilerSource);
-    }
-  }
-  friend class CompilerSession;
-  friend class CompilerInvocation;
+                              const std::string &name);
 };
 
 class CompilerInvocation {
-  iree_compiler_invocation_t *invocation;
-
-  CompilerInvocation(iree_compiler_session_t *session) {
-    invocation = ireeCompilerInvocationCreate(session);
-    ireeCompilerInvocationEnableConsoleDiagnostics(invocation);
-  }
-
 public:
-  [[nodiscard]] bool parseSource(SourceWrapBuffer *source) {
-    return ireeCompilerInvocationParseSource(invocation,
-                                             source->compilerSource);
-  }
+  ~CompilerInvocation();
+  [[nodiscard]] bool parseSource(SourceWrapBuffer *source);
+  [[nodiscard]] bool compile();
+  void outputIR();
+  void run();
 
-  [[nodiscard]] bool compile() {
-    return ireeCompilerInvocationPipeline(invocation,
-                                          IREE_COMPILER_PIPELINE_STD);
-  }
-
-  void outputIR() {
-    iree_compiler_output_t *output;
-    ireeCompilerOutputOpenFD(fileno(stdout), &output);
-    ireeCompilerInvocationOutputIR(invocation, output);
-    ireeCompilerOutputDestroy(output);
-  }
-
-  void run() {
-    iree_compiler_output_t *output;
-    ireeCompilerOutputOpenMembuffer(&output);
-    ireeCompilerInvocationOutputVMBytecode(invocation, output);
-
-    void *content;
-    size_t size;
-    ireeCompilerOutputMapMemory(output, &content, &size);
-
-    runModule(content, size);
-
-    ireeCompilerOutputDestroy(output);
-  }
-
-  ~CompilerInvocation() { ireeCompilerInvocationDestroy(invocation); }
-
+private:
+  iree_compiler_invocation_t *invocation;
+  CompilerInvocation(iree_compiler_session_t *session);
   friend class CompilerSession;
 };
 
 class CompilerSession {
-  iree_compiler_session_t *session;
-
 public:
-  CompilerSession() {
-    session = ireeCompilerSessionCreate();
-
-    std::vector<const char *> flags = {
-        "--iree-hal-target-backends=llvm-cpu",
-    };
-
-    ireeCompilerSetupGlobalCL(flags.size(), flags.data(), "iree_compile",
-                              false);
-
-    auto error =
-        ireeCompilerSessionSetFlags(session, flags.size(), flags.data());
-    if (error) {
-      fmt::println(stderr, "Error setting flags: {}",
-                   ireeCompilerErrorGetMessage(error));
-    }
-  }
-  ~CompilerSession() { ireeCompilerSessionDestroy(session); }
-
+  CompilerSession();
+  ~CompilerSession();
   std::unique_ptr<SourceWrapBuffer>
-  createSourceWrapBuffer(const std::string &source, const std::string &name) {
-    auto sourceWrapper = std::make_unique<SourceWrapBuffer>();
-    auto error = sourceWrapper->init(session, source, name);
-    if (error) {
-      fmt::println(stderr, "Error wrapping source buffer: {}",
-                   error->getMessage());
-      return nullptr;
-    }
-    return sourceWrapper;
-  }
+  createSourceWrapBuffer(const std::string &source, const std::string &name);
+  std::unique_ptr<CompilerInvocation> createCompilerInvocation();
 
-  std::unique_ptr<CompilerInvocation> createCompilerInvocation() {
-    return std::unique_ptr<CompilerInvocation>(new CompilerInvocation(session));
-  }
+private:
+  iree_compiler_session_t *session;
 };
 
 } // namespace iree

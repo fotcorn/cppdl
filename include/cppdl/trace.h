@@ -112,7 +112,7 @@ public:
 
   const Graph &getGraph() { return graph; }
 
-  std::vector<NodeId> topologicalSort() {
+  std::vector<NodeId> topologicalSort() const {
     // TODO: cycle detection.
     std::vector<NodeId> list;
 

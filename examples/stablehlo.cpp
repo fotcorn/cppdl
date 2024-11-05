@@ -1,65 +1,71 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/ImplicitLocOpBuilder.h"
+#include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/Types.h"
 #include "mlir/IR/Verifier.h"
 
-#include "stablehlo/dialect/StablehloOps.h"
+void generateMLIRFunction(mlir::MLIRContext &context) {
+  context.getOrLoadDialect<mlir::func::FuncDialect>();
+  context.getOrLoadDialect<mlir::arith::ArithDialect>();
+  context.getOrLoadDialect<mlir::linalg::LinalgDialect>();
 
-int main() {
-  mlir::MLIRContext ctx;
+  mlir::OpBuilder builder(&context);
 
-  ctx.loadDialect<mlir::func::FuncDialect, mlir::arith::ArithDialect,
-                  mlir::stablehlo::StablehloDialect>();
+  mlir::ModuleOp module = mlir::ModuleOp::create(builder.getUnknownLoc());
 
-  mlir::ImplicitLocOpBuilder b(mlir::UnknownLoc::get(&ctx), &ctx);
+  // Define the tensor types with specified dimensions
+  mlir::Type inputType =
+      mlir::RankedTensorType::get({-1, 28}, builder.getF32Type());
+  mlir::Type weightType =
+      mlir::RankedTensorType::get({28, 28}, builder.getF32Type());
+  mlir::Type biasType =
+      mlir::RankedTensorType::get({1, 28}, builder.getF32Type());
+  mlir::Type resultType =
+      mlir::RankedTensorType::get({-1, 28}, builder.getF32Type());
 
-  mlir::ModuleOp module = b.create<mlir::ModuleOp>();
+  mlir::FunctionType funcType =
+      builder.getFunctionType({inputType, weightType, biasType}, {resultType});
 
-  auto tensor28x28Type = mlir::RankedTensorType::get({28, 28}, b.getF32Type());
-  auto tensor784x10Type =
-      mlir::RankedTensorType::get({784, 10}, b.getF32Type());
-  auto tensor1x10Type = mlir::RankedTensorType::get({1, 10}, b.getF32Type());
-  auto tensor1x784Type = mlir::RankedTensorType::get({1, 784}, b.getF32Type());
+  auto func = builder.create<mlir::func::FuncOp>(builder.getUnknownLoc(),
+                                                 "matmul_add", funcType);
+  mlir::Block *entryBlock = func.addEntryBlock();
 
-  auto func = b.create<mlir::func::FuncOp>(
-      "main",
-      b.getFunctionType({tensor28x28Type, tensor784x10Type, tensor1x10Type},
-                        {tensor1x10Type}));
-
-  auto entryBlock = func.addEntryBlock();
-  b.setInsertionPointToStart(entryBlock);
-
-  mlir::Value image = entryBlock->getArgument(0);
+  mlir::Value input = entryBlock->getArgument(0);
   mlir::Value weights = entryBlock->getArgument(1);
   mlir::Value bias = entryBlock->getArgument(2);
 
-  mlir::Value reshapeOp =
-      b.create<mlir::stablehlo::ReshapeOp>(tensor1x784Type, image);
-  auto dotOp = b.create<mlir::stablehlo::DotOp>(tensor1x10Type, reshapeOp,
-                                                weights, b.getI32ArrayAttr({}));
-  auto addOp = b.create<mlir::stablehlo::AddOp>(tensor1x10Type, dotOp, bias);
+  builder.setInsertionPointToStart(entryBlock);
 
-  auto zero = b.create<mlir::stablehlo::ConstantOp>(
-      mlir::DenseElementsAttr::get(tensor1x10Type, {0.0f}));
+  // Create the matrix multiplication operation
+  auto matmul = builder.create<mlir::linalg::MatmulOp>(
+      builder.getUnknownLoc(), input, weights, resultType);
 
-  auto maxOp = b.create<mlir::stablehlo::MaxOp>(tensor1x10Type, addOp, zero);
-  b.create<mlir::func::ReturnOp>(maxOp.getResult());
+  // Broadcast bias to match the result dimensions and add it element-wise
+  auto broadcastBias = builder.create<mlir::linalg::BroadcastOp>(
+      builder.getUnknownLoc(), resultType, bias, resultType);
+  auto result = builder.create<mlir::arith::AddFOp>(
+      builder.getUnknownLoc(), matmul.getResult(0), broadcastBias.getResult(0));
+
+  // Return the result
+  builder.create<mlir::func::ReturnOp>(builder.getUnknownLoc(), result);
 
   module.push_back(func);
 
   if (mlir::failed(mlir::verify(module))) {
-    llvm::errs() << "module verification failed\n";
+    llvm::errs() << "Module verification failed\n";
+    return;
   }
 
-  std::string moduleStr;
-  llvm::raw_string_ostream os(moduleStr);
-  module.print(os);
-  os.flush();
+  module.print(llvm::outs());
+}
 
-  llvm::outs() << moduleStr;
+int main(int argc, char **argv) {
+  mlir::MLIRContext context;
+
+  generateMLIRFunction(context);
 
   return 0;
 }

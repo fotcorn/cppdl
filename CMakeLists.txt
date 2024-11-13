@@ -13,39 +13,7 @@ set(gtest_force_shared_crt
     ON
     CACHE BOOL "" FORCE)
 
-option(CPPDL_USE_IREE "Use IREE for compilation." OFF)
-if(CPPDL_USE_IREE)
-  # Based on
-  # https://github.com/iree-org/iree-template-runtime-cmake/blob/main/CMakeLists.txt
-  # and
-  # https://github.com/iree-org/iree-template-compiler-cmake/blob/main/CMakeLists.txt
-  set(IREE_BUILD_COMPILER ON)
-  set(IREE_BUILD_TESTS OFF)
-  set(IREE_BUILD_SAMPLES OFF)
-
-  set(IREE_HAL_DRIVER_DEFAULTS OFF)
-  set(IREE_HAL_DRIVER_LOCAL_SYNC ON)
-  set(IREE_HAL_DRIVER_LOCAL_TASK ON)
-  set(IREE_HAL_DRIVER_VULKAN ON)
-
-  set(IREE_TARGET_BACKEND_DEFAULTS OFF)
-  set(IREE_TARGET_BACKEND_LLVM_CPU ON)
-  set(IREE_TARGET_BACKEND_VULKAN_SPIRV ON)
-
-  set(IREE_DEFAULT_CPU_LLVM_TARGETS "host")
-
-  set(IREE_HAL_EXECUTABLE_LOADER_DEFAULTS OFF)
-  set(IREE_HAL_EXECUTABLE_LOADER_EMBEDDED_ELF ON)
-
-  set(IREE_INPUT_STABLEHLO ON)
-  set(IREE_INPUT_TORCH OFF)
-  set(IREE_INPUT_TOSA OFF)
-
-  add_subdirectory(vendor/iree EXCLUDE_FROM_ALL SYSTEM)
-else()
-  # Use our own googletest if we don't use the one from IREE.
-  add_subdirectory(vendor/googletest)
-endif()
+add_subdirectory(vendor/googletest)
 
 macro(add_cppdl_target NAME)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")

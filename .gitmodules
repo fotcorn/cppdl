@@ -4,6 +4,3 @@
 [submodule "vendor/fmt"]
 	path = vendor/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "vendor/iree"]
-	path = vendor/iree
-	url = https://github.com/openxla/iree.git

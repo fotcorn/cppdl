@@ -1,6 +1,7 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
+#include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/BuiltinTypes.h"
@@ -12,45 +13,44 @@ void generateMLIRFunction(mlir::MLIRContext &context) {
   context.getOrLoadDialect<mlir::arith::ArithDialect>();
   context.getOrLoadDialect<mlir::linalg::LinalgDialect>();
 
-  mlir::OpBuilder builder(&context);
+  mlir::OpBuilder b(&context);
 
-  mlir::ModuleOp module = mlir::ModuleOp::create(builder.getUnknownLoc());
+  mlir::ModuleOp module = mlir::ModuleOp::create(b.getUnknownLoc());
 
   // Define the tensor types with specified dimensions
-  mlir::Type inputType =
-      mlir::RankedTensorType::get({-1, 28}, builder.getF32Type());
+  mlir::Type inputType = mlir::RankedTensorType::get({1, 784}, b.getF32Type());
   mlir::Type weightType =
-      mlir::RankedTensorType::get({28, 28}, builder.getF32Type());
-  mlir::Type biasType =
-      mlir::RankedTensorType::get({1, 28}, builder.getF32Type());
-  mlir::Type resultType =
-      mlir::RankedTensorType::get({-1, 28}, builder.getF32Type());
+      mlir::RankedTensorType::get({784, 784}, b.getF32Type());
+  mlir::Type biasType = mlir::RankedTensorType::get({1, 784}, b.getF32Type());
+  auto resultType = mlir::RankedTensorType::get({1, 784}, b.getF32Type());
 
-  mlir::FunctionType funcType =
-      builder.getFunctionType({inputType, weightType, biasType}, {resultType});
+  // Function setup
+  auto funcType =
+      b.getFunctionType({inputType, weightType, biasType}, {resultType});
 
-  auto func = builder.create<mlir::func::FuncOp>(builder.getUnknownLoc(),
-                                                 "matmul_add", funcType);
+  auto func =
+      b.create<mlir::func::FuncOp>(b.getUnknownLoc(), "matmul_add", funcType);
   mlir::Block *entryBlock = func.addEntryBlock();
 
   mlir::Value input = entryBlock->getArgument(0);
   mlir::Value weights = entryBlock->getArgument(1);
   mlir::Value bias = entryBlock->getArgument(2);
 
-  builder.setInsertionPointToStart(entryBlock);
+  b.setInsertionPointToStart(entryBlock);
 
-  // Create the matrix multiplication operation
-  auto matmul = builder.create<mlir::linalg::MatmulOp>(
-      builder.getUnknownLoc(), input, weights, resultType);
+  // Matmul of weights
+  auto init = b.create<mlir::tensor::EmptyOp>(
+      b.getUnknownLoc(), resultType.getShape(), b.getF32Type());
 
-  // Broadcast bias to match the result dimensions and add it element-wise
-  auto broadcastBias = builder.create<mlir::linalg::BroadcastOp>(
-      builder.getUnknownLoc(), resultType, bias, resultType);
-  auto result = builder.create<mlir::arith::AddFOp>(
-      builder.getUnknownLoc(), matmul.getResult(0), broadcastBias.getResult(0));
+  auto matmul = b.create<mlir::linalg::MatmulOp>(
+      b.getUnknownLoc(), mlir::ValueRange{input, weights},
+      mlir::ValueRange{init});
 
-  // Return the result
-  builder.create<mlir::func::ReturnOp>(builder.getUnknownLoc(), result);
+  // Add bias
+  auto result = b.create<mlir::arith::AddFOp>(b.getUnknownLoc(),
+                                              matmul.getResult(0), bias);
+
+  b.create<mlir::func::ReturnOp>(b.getUnknownLoc(), result.getResult());
 
   module.push_back(func);
 
@@ -62,7 +62,7 @@ void generateMLIRFunction(mlir::MLIRContext &context) {
   module.print(llvm::outs());
 }
 
-int main(int argc, char **argv) {
+int main() {
   mlir::MLIRContext context;
 
   generateMLIRFunction(context);

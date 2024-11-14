@@ -18,7 +18,9 @@ add_cppdl_executable(mnist_trace ${CMAKE_CURRENT_SOURCE_DIR}/mnist_trace.cpp)
 #             iree_hal_drivers_local_sync_sync_driver
 #             iree_hal_local_loaders_embedded_elf_loader)
 # 
-#   add_cppdl_executable(stablehlo ${CMAKE_CURRENT_SOURCE_DIR}/stablehlo.cpp)
-#   target_link_libraries(stablehlo PRIVATE StablehloOps MLIRIR MLIRParser
-#                                           MLIRSupport MLIRTransforms)
+add_cppdl_executable(stablehlo ${CMAKE_CURRENT_SOURCE_DIR}/stablehlo.cpp)
+target_link_libraries(stablehlo PRIVATE MLIRIR MLIRParser MLIRSupport MLIRTransforms MLIRFuncDialect MLIRArithDialect MLIRLinalgDialect)
+target_include_directories(stablehlo SYSTEM PRIVATE ${MLIR_INCLUDE_DIRS})
+
+
 # endif()

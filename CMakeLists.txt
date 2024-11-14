@@ -15,6 +15,11 @@ set(gtest_force_shared_crt
 
 add_subdirectory(vendor/googletest)
 
+# MLIR
+find_package(MLIR REQUIRED CONFIG)
+list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
+include(AddMLIR)
+
 macro(add_cppdl_target NAME)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(${NAME} PRIVATE -Wall -Wextra -Wpedantic

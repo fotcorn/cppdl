@@ -7,6 +7,5 @@ cmake -GNinja .. \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
     -DCMAKE_C_COMPILER=clang-18 \
     -DCMAKE_CXX_COMPILER=clang++-18 \
-    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+    -DMLIR_DIR=<path to mlir install>/lib/cmake/mlir
 ```

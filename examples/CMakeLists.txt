@@ -10,5 +10,4 @@ add_cppdl_executable(trace ${CMAKE_CURRENT_SOURCE_DIR}/trace.cpp)
 add_cppdl_executable(mnist_trace ${CMAKE_CURRENT_SOURCE_DIR}/mnist_trace.cpp)
 
 add_cppdl_executable(mlir_matmul ${CMAKE_CURRENT_SOURCE_DIR}/mlir_matmul.cpp)
-target_link_libraries(mlir_matmul PRIVATE MLIRIR MLIRParser MLIRSupport MLIRTransforms MLIRFuncDialect MLIRArithDialect MLIRLinalgDialect)
 target_include_directories(mlir_matmul SYSTEM PRIVATE ${MLIR_INCLUDE_DIRS})

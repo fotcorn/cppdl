@@ -1,4 +1,5 @@
 #include "cppdl/trace.h"
+#include "cppdl/codegen.h"
 
 #include <fstream>
 #include <iostream>
@@ -30,7 +31,9 @@ int main() {
   auto z2 = layer2.forward(a1);
   auto result = z2.softmax(1);
 
-  printGraphBackwards(nn.getGraph(), result.nodeId);
+  //printGraphBackwards(nn.getGraph(), result.nodeId);
+
+  codegen(nn);
 
   return 0;
 }

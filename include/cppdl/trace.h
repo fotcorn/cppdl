@@ -110,7 +110,8 @@ public:
     return TraceTensor(shape, graph, id);
   }
 
-  const Graph &getGraph() { return graph; }
+  const Graph &getGraph() const { return graph; }
+  NodeId getInputTensor() const { return inputTensor; }
 
   std::vector<NodeId> topologicalSort() const {
     // TODO: cycle detection.

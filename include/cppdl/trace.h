@@ -9,6 +9,7 @@
 #include <fmt/ranges.h>
 
 #include "cppdl/graph.h"
+#include "cppdl/tensor.h"
 
 class NeuralNetwork;
 
@@ -18,9 +19,10 @@ class TraceTensor {
 public:
   NodeId nodeId;
   std::vector<std::size_t> shape;
+  Tensor<float> data;
 
-  TraceTensor(std::vector<std::size_t> shape, Graph &graph, NodeId nodeId)
-      : graph(graph), nodeId(nodeId), shape(shape) {}
+  TraceTensor(std::vector<std::size_t> shape, Graph &graph, NodeId nodeId, const Tensor<float>& data = Tensor<float>())
+      : graph(graph), nodeId(nodeId), shape(shape), data(data) {}
 
   TraceTensor matmul(TraceTensor &other) const {
     if (shape.size() != 2 || other.shape.size() != 2) {
@@ -98,10 +100,10 @@ class NeuralNetwork {
 public:
   NeuralNetwork() : graph(1024 * 100) {}
 
-  TraceTensor paramTensor(std::string name, std::vector<std::size_t> shape) {
-    auto id = graph.addNode<TensorNode>(name, std::vector<std::size_t>(shape));
+  TraceTensor paramTensor(std::string name, std::vector<std::size_t> shape, const Tensor<float>& data = Tensor<float>()) {
+    auto id = graph.addNode<TensorNode>(name, shape);
     paramTensors.push_back(id);
-    return TraceTensor(shape, graph, id);
+    return TraceTensor(shape, graph, id, data);
   }
 
   TraceTensor setInputTensor(std::string name, std::vector<std::size_t> shape) {

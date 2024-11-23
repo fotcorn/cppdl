@@ -8,6 +8,8 @@
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 
+#include "tensor.h"
+
 using NodeId = std::uintptr_t;
 class Node;
 
@@ -146,14 +148,16 @@ public:
 
 class TensorNode : public Node {
   std::string name;
+  Tensor<float> data;
 
 public:
-  TensorNode(Graph &, std::string name, std::vector<std::size_t> shape)
-      : Node(NodeKind::Tensor, shape), name(name) {}
+  TensorNode(Graph &, std::string name, const Tensor<float>& data = Tensor<float>())
+      : Node(NodeKind::Tensor, data.shape), name(name), data(data) {}
   static bool classof(const Node *node) {
     return node->getKind() == NodeKind::Tensor;
   }
   std::string getName() const { return name; }
+  const Tensor<float>& getData() const { return data; }
 };
 
 class ReLUNode : public UnaryNode {

@@ -21,8 +21,8 @@ public:
   std::vector<std::size_t> shape;
   Tensor<float> data;
 
-  TraceTensor(std::vector<std::size_t> shape, Graph &graph, NodeId nodeId, const Tensor<float>& data = Tensor<float>())
-      : graph(graph), nodeId(nodeId), shape(shape), data(data) {}
+  TraceTensor(std::vector<std::size_t> shape, Graph &graph, NodeId nodeId)
+      : graph(graph), nodeId(nodeId), shape(shape) {}
 
   TraceTensor matmul(TraceTensor &other) const {
     if (shape.size() != 2 || other.shape.size() != 2) {
@@ -101,9 +101,9 @@ public:
   NeuralNetwork() : graph(1024 * 100) {}
 
   TraceTensor paramTensor(std::string name, std::vector<std::size_t> shape, const Tensor<float>& data = Tensor<float>()) {
-    auto id = graph.addNode<TensorNode>(name, shape);
+    auto id = graph.addNode<TensorNode>(name, data);
     paramTensors.push_back(id);
-    return TraceTensor(shape, graph, id, data);
+    return TraceTensor(shape, graph, id);
   }
 
   TraceTensor setInputTensor(std::string name, std::vector<std::size_t> shape) {
@@ -114,6 +114,7 @@ public:
 
   const Graph &getGraph() const { return graph; }
   NodeId getInputTensor() const { return inputTensor; }
+  const std::vector<NodeId> &getParamTensors() const { return paramTensors; }
 
   std::vector<NodeId> topologicalSort() const {
     // TODO: cycle detection.

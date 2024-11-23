@@ -28,11 +28,11 @@ int main(int argc, char* argv[]) {
   NeuralNetwork nn;
 
   // Load weights from the file
-  auto w0_tensor = deserializeTensor<float>(file).value();
+  auto w0_tensor = deserializeTensor<float>(file).value().transpose();
   auto b0_tensor = deserializeTensor<float>(file).value();
-  auto w1_tensor = deserializeTensor<float>(file).value();
+  auto w1_tensor = deserializeTensor<float>(file).value().transpose();
   auto b1_tensor = deserializeTensor<float>(file).value();
-  auto w2_tensor = deserializeTensor<float>(file).value();
+  auto w2_tensor = deserializeTensor<float>(file).value().transpose();
   auto b2_tensor = deserializeTensor<float>(file).value();
 
   // Initialize paramTensors with the loaded weights
